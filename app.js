@@ -1,108 +1,95 @@
 const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const path = require('path');
-const { MongoClient, ObjectId } = require('mongodb');
 
 const app = express();
-const PORT = 3000;
-const MONGO_URL = 'mongodb://localhost:27017';
-const DB_NAME = 'galleryDB';
-
-let db;
-let postsCollection;
+const db = new sqlite3.Database('./database.sqlite');
 
 app.use(cors());
 app.use(express.json());
-
 app.use(express.static(path.join(__dirname, 'public')));
+
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      author TEXT NOT NULL,
+      content TEXT NOT NULL,
+      ip TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id INTEGER NOT NULL,
+      author TEXT NOT NULL,
+      text TEXT NOT NULL,
+      ip TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(post_id) REFERENCES posts(id)
+    )
+  `);
+});
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/posts', async (req, res) => {
-  try {
-    const posts = await postsCollection
-      .find()
-      .sort({ createdAt: -1 })
-      .toArray();
-    res.json(posts);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: '서버 오류' });
-  }
-});
-
-app.post('/posts', async (req, res) => {
-  const { title, content, ip } = req.body;
-  if (!title || !content) {
-    return res.status(400).json({ error: '제목과 내용을 입력하세요.' });
-  }
-  try {
-    const result = await postsCollection.insertOne({
-      title,
-      content,
-      ip,
-      createdAt: Date.now(),
-      comments: []
-    });
-    res.status(201).json({ id: result.insertedId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: '서버 오류' });
-  }
-});
-
-app.get('/posts/:id', async (req, res) => {
-  try {
-    const post = await postsCollection.findOne({ _id: new ObjectId(req.params.id) });
-    if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
-    res.json(post);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: '서버 오류' });
-  }
-});
-
-app.post('/posts/:id/comments', async (req, res) => {
-  const { author, text, ip } = req.body;
-  if (!author || !text) {
-    return res.status(400).json({ error: '작성자와 내용을 입력하세요.' });
-  }
-  try {
-    const result = await postsCollection.updateOne(
-      { _id: new ObjectId(req.params.id) },
-      { $push: { comments: { author, text, ip, createdAt: Date.now() } } }
-    );
-    if (result.modifiedCount === 0) {
-      return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
-    }
-    res.status(201).json({ message: '댓글 작성 완료' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: '서버 오류' });
-  }
-});
-
-app.get('/bannedIPs/:ip', async (req, res) => {
-  try {
-    const banned = await db.collection('bannedIPs').findOne({ _id: req.params.ip });
-    res.json({ banned: !!banned });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: '서버 오류' });
-  }
-});
-
-MongoClient.connect(MONGO_URL, { useUnifiedTopology: true })
-  .then(client => {
-    db = client.db(DB_NAME);
-    postsCollection = db.collection('posts');
-    console.log('✅ MongoDB 연결 성공');
-    app.listen(PORT, () => {
-      console.log(`✅ 서버 실행: http://localhost:${PORT}`);
-    });
-  })
-  .catch(err => {
-    console.error('❌ MongoDB 연결 실패:', err);
+app.get('/posts', (req, res) => {
+  db.all('SELECT * FROM posts ORDER BY created_at DESC', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
   });
+});
+
+app.get('/posts/:id', (req, res) => {
+  const postId = req.params.id;
+  db.get('SELECT * FROM posts WHERE id = ?', [postId], (err, post) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC', [postId], (err, comments) => {
+      if (err) return res.status(500).json({ error: err.message });
+      post.comments = comments;
+      res.json(post);
+    });
+  });
+});
+
+app.post('/posts', (req, res) => {
+  const { title, author, content } = req.body;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+  db.run(
+    `INSERT INTO posts (title, author, content, ip) VALUES (?, ?, ?, ?)`,
+    [title, author, content, ip],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID });
+    }
+  );
+});
+
+app.post('/posts/:id/comments', (req, res) => {
+  const postId = req.params.id;
+  const { author, text } = req.body;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+  db.run(
+    `INSERT INTO comments (post_id, author, text, ip) VALUES (?, ?, ?, ?)`,
+    [postId, author, text, ip],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID });
+    }
+  );
+});
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
