@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>체르 갤러리</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: #f0f2f7;
+      color: #222;
+      min-height: 100vh;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #3366ff;
+      margin-bottom: 6px;
+      letter-spacing: 1.5px;
+    }
+    header p {
+      font-size: 1rem;
+      color: #666;
+    }
+    #topBar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+    #searchInput {
+      flex-grow: 1;
+      max-width: 65%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 2px solid #d0d7e9;
+      font-size: 1rem;
+      font-weight: 600;
+      background: white;
+      color: #222;
+      transition: 0.3s;
+    }
+    #searchInput:focus {
+      border-color: #3366ff;
+      box-shadow: 0 0 8px rgba(51,102,255,0.3);
+      outline: none;
+    }
+    #writePostBtn {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #3366ff, #254eda);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(51,102,255,0.55);
+      user-select: none;
+      transition: background 0.3s ease;
+      flex-shrink: 0;
+      max-width: 35%;
+    }
+    #writePostBtn:hover {
+      background: linear-gradient(135deg, #254eda, #1e3bb3);
+    }
+    #writePostBtn:active {
+      box-shadow: 0 4px 12px rgba(51,102,255,0.7);
+    }
+    #postsList {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.07);
+      padding: 20px 24px;
+      max-height: 65vh;
+      overflow-y: auto;
+    }
+    #postsList ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #postsList li {
+      padding: 16px 14px;
+      border-bottom: 1.3px solid #e6e9f8;
+      cursor: pointer;
+      border-radius: 14px;
+      transition: background-color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    #postsList li:last-child {
+      border-bottom: none;
+    }
+    #postsList li:hover,
+    #postsList li:focus {
+      background: #e8efff;
+      outline: none;
+    }
+    .post-title {
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: #3366ff;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .post-meta {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #7a8198;
+      white-space: nowrap;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(20,30,70,0.6);
+      backdrop-filter: blur(6px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 16px;
+      z-index: 1600;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      padding: 32px 36px 36px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+      overflow-y: auto;
+      position: relative;
+      font-size: 1rem;
+      line-height: 1.5;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-content h2 {
+      font-weight: 900;
+      font-size: 1.8rem;
+      color: #3366ff;
+      margin-bottom: 26px;
+    }
+    .modal-content input[type="text"],
+    .modal-content textarea {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      border: 2px solid #d4d9e8;
+      font-size: 1rem;
+      font-weight: 600;
+      resize: vertical;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      font-family: 'Pretendard', sans-serif;
+      margin-bottom: 18px;
+      background: white;
+      color: #222;
+    }
+    .modal-content input[type="text"]:focus,
+    .modal-content textarea:focus {
+      border-color: #3366ff;
+      box-shadow: 0 0 12px rgba(51,102,255,0.5);
+      outline: none;
+    }
+    .modal-content button#submitPostBtn {
+      background: linear-gradient(135deg, #3366ff, #254eda);
+      border: none;
+      border-radius: 20px;
+      padding: 16px 0;
+      font-weight: 900;
+      font-size: 1.3rem;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(51,102,255,0.55);
+      user-select: none;
+      transition: background 0.3s ease;
+      margin-top: auto;
+    }
+    .modal-content button#submitPostBtn:hover {
+      background: linear-gradient(135deg, #254eda, #1e3bb3);
+    }
+    .modal-content button#submitPostBtn:active {
+      box-shadow: 0 5px 16px rgba(51,102,255,0.7);
+    }
+    .modal-content .closeBtn {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      font-size: 2.6rem;
+      background: transparent;
+      border: none;
+      color: #8c95b8;
+      font-weight: 700;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      user-select: none;
+    }
+    .modal-content .closeBtn:hover {
+      color: #3366ff;
+    }
+    #postDetailContent {
+      white-space: pre-wrap;
+      color: #404556;
+      font-size: 1.15rem;
+      margin-bottom: 20px;
+    }
+    #commentForm {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    #commentForm input[type="text"] {
+      flex: 1 1 45%;
+      padding: 14px 18px;
+      border-radius: 30px;
+      border: 2px solid #d5dbe8;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      background: white;
+      color: #222;
+    }
+    #commentForm input[type="text"]:focus {
+      border-color: #3366ff;
+      box-shadow: 0 0 12px rgba(51,102,255,0.35);
+      outline: none;
+    }
+    #commentForm button {
+      flex: 1 1 100%;
+      background: linear-gradient(135deg, #3366ff, #254eda);
+      color: white;
+      font-weight: 900;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 30px;
+      padding: 16px 0;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(51,102,255,0.55);
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+    #commentForm button:hover {
+      background: linear-gradient(135deg, #254eda, #1e3bb3);
+    }
+    #commentForm button:active {
+      box-shadow: 0 5px 16px rgba(51,102,255,0.7);
+    }
+    #commentsList {
+      max-height: 320px;
+      overflow-y: auto;
+      background: #f8fbff;
+      border: 2px solid #d5dbed;
+      border-radius: 20px;
+      padding: 14px 22px;
+      color: #3c475b;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .comment-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #d9e0f5;
+      outline: none;
+      position: relative;
+    }
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+    .comment-author {
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #3366ff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>체르 갤러리</h1>
+    <p>MADE BY JAMYUN</p>
+  </header>
+
+  <div id="topBar">
+    <input type="text" id="searchInput" placeholder="제목으로 검색" aria-label="게시물 제목 검색" />
+    <button id="writePostBtn" aria-label="게시글 작성하기">글쓰기</button>
+  </div>
+
+  <section id="postsList" aria-label="게시글 목록">
+    <ul tabindex="0"></ul>
+  </section>
+
+  <!-- 글쓰기 모달 -->
+  <div class="modal" id="postModal" role="dialog" aria-modal="true" aria-labelledby="postModalTitle" tabindex="-1">
+    <div class="modal-content">
+      <button class="closeBtn" title="닫기" aria-label="닫기">&times;</button>
+      <h2 id="postModalTitle">게시글 작성</h2>
+      <input type="text" id="postTitle" placeholder="제목을 입력하세요" aria-label="게시글 제목 입력" />
+      <textarea id="postContent" rows="6" placeholder="내용을 입력하세요" aria-label="게시글 내용 입력"></textarea>
+      <button id="submitPostBtn">작성 완료</button>
+    </div>
+  </div>
+
+  <!-- 게시글 상세 모달 -->
+  <div class="modal" id="postDetailModal" role="dialog" aria-modal="true" aria-labelledby="postDetailTitle" tabindex="-1">
+    <div class="modal-content">
+      <button class="closeBtn" title="닫기" aria-label="닫기">&times;</button>
+      <h2 id="postDetailTitle"></h2>
+      <div id="postDetailContent"></div>
+
+      <form id="commentForm" aria-label="댓글 작성 폼">
+        <input type="text" id="commentAuthor" placeholder="이름" required aria-required="true" aria-label="댓글 작성자 이름" />
+        <input type="text" id="commentText" placeholder="댓글을 입력하세요" required aria-required="true" aria-label="댓글 내용 입력" />
+        <button type="submit">댓글 작성</button>
+      </form>
+
+      <section id="commentsList" aria-live="polite" aria-label="댓글 목록"></section>
+    </div>
+  </div>
+
+  <script>
+    // 서버 주소 (필요 시 수정)
+    const SERVER_URL = '';
+
+    const postsListEl = document.querySelector('#postsList ul');
+    const writePostBtn = document.getElementById('writePostBtn');
+    const postModal = document.getElementById('postModal');
+    const postDetailModal = document.getElementById('postDetailModal');
+    const postTitleInput = document.getElementById('postTitle');
+    const postContentInput = document.getElementById('postContent');
+    const submitPostBtn = document.getElementById('submitPostBtn');
+    const postDetailTitle = document.getElementById('postDetailTitle');
+    const postDetailContent = document.getElementById('postDetailContent');
+    const commentForm = document.getElementById('commentForm');
+    const commentAuthorInput = document.getElementById('commentAuthor');
+    const commentTextInput = document.getElementById('commentText');
+    const commentsList = document.getElementById('commentsList');
+    const searchInput = document.getElementById('searchInput');
+
+    let posts = [];
+    let filteredPosts = [];
+    let currentPostId = null;
+
+    // 모달 열기/닫기
+    function openModal(modal) {
+      modal.classList.add('active');
+      modal.focus();
+    }
+    function closeModal(modal) {
+      modal.classList.remove('active');
+    }
+
+    document.querySelectorAll('.modal .closeBtn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        closeModal(e.target.closest('.modal'));
+      });
+    });
+
+    // 게시물 렌더링
+    function renderPosts(list) {
+      postsListEl.innerHTML = '';
+      if (list.length === 0) {
+        postsListEl.innerHTML = '<li>게시물이 없습니다.</li>';
+        return;
+      }
+      list.forEach(post => {
+        const li = document.createElement('li');
+        li.tabIndex = 0;
+        li.className = 'post-item';
+        li.dataset.id = post._id;
+        li.innerHTML = `
+          <div class="post-title">${escapeHTML(post.title)}</div>
+          <div class="post-meta">${new Date(post.createdAt).toLocaleString()}</div>
+        `;
+        li.addEventListener('click', () => openPostDetail(post._id));
+        li.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openPostDetail(post._id);
+          }
+        });
+        postsListEl.appendChild(li);
+      });
+    }
+
+    // XSS 방지
+    function escapeHTML(text) {
+      return text.replace(/[&<>"']/g, function(m) {
+        return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[m];
+      });
+    }
+
+    // 게시물 불러오기
+    async function loadPosts() {
+      try {
+        const res = await fetch(SERVER_URL + '/posts');
+        posts = await res.json();
+        applySearchFilter();
+      } catch(e) {
+        alert('게시물을 불러오는데 실패했습니다.');
+      }
+    }
+
+    // 검색 필터 적용
+    function applySearchFilter() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      if (!keyword) {
+        filteredPosts = posts;
+      } else {
+        filteredPosts = posts.filter(p => p.title.toLowerCase().includes(keyword));
+      }
+      renderPosts(filteredPosts);
+    }
+    searchInput.addEventListener('input', applySearchFilter);
+
+    // 게시물 상세 보기
+    async function openPostDetail(id) {
+      try {
+        const res = await fetch(SERVER_URL + '/posts/' + id);
+        if (!res.ok) {
+          alert('게시물을 찾을 수 없습니다.');
+          return;
+        }
+        const post = await res.json();
+        currentPostId = id;
+        postDetailTitle.textContent = post.title;
+        postDetailContent.textContent = post.content;
+        renderComments(post.comments || []);
+        openModal(postDetailModal);
+      } catch(e) {
+        alert('게시물 상세 조회 실패');
+      }
+    }
+
+    // 댓글 렌더링
+    function renderComments(comments) {
+      if (!comments.length) {
+        commentsList.innerHTML = '<p>댓글이 없습니다.</p>';
+        return;
+      }
+      commentsList.innerHTML = '';
+      comments.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comment-item';
+        div.tabIndex = 0;
+        div.innerHTML = `
+          <div class="comment-author">${escapeHTML(c.author)}</div>
+          <div class="comment-text">${escapeHTML(c.text)}</div>
+        `;
+        commentsList.appendChild(div);
+      });
+    }
+
+    // 글쓰기 모달 열기
+    writePostBtn.addEventListener('click', () => {
+      postTitleInput.value = '';
+      postContentInput.value = '';
+      openModal(postModal);
+    });
+
+    // 게시물 작성
+    submitPostBtn.addEventListener('click', async () => {
+      const title = postTitleInput.value.trim();
+      const content = postContentInput.value.trim();
+      if (!title || !content) {
+        alert('제목과 내용을 모두 입력해주세요.');
+        return;
+      }
+      try {
+        const res = await fetch(SERVER_URL + '/posts', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({title, content})
+        });
+        if (!res.ok) throw new Error();
+        closeModal(postModal);
+        await loadPosts();
+      } catch(e) {
+        alert('게시물 작성에 실패했습니다.');
+      }
+    });
+
+    // 댓글 작성
+    commentForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const author = commentAuthorInput.value.trim();
+      const text = commentTextInput.value.trim();
+      if (!author || !text) {
+        alert('이름과 댓글 내용을 모두 입력해주세요.');
+        return;
+      }
+      try {
+        const res = await fetch(SERVER_URL + '/posts/' + currentPostId + '/comments', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({author, text})
+        });
+        if (!res.ok) throw new Error();
+        // 댓글 작성 후 다시 게시물 상세 가져오기
+        const postRes = await fetch(SERVER_URL + '/posts/' + currentPostId);
+        const post = await postRes.json();
+        renderComments(post.comments || []);
+        commentAuthorInput.value = '';
+        commentTextInput.value = '';
+      } catch (e) {
+        alert('댓글 작성에 실패했습니다.');
+      }
+    });
+
+    // 초기 로드
+    loadPosts();
+
+    // ESC키 누르면 모달 닫기
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (postModal.classList.contains('active')) closeModal(postModal);
+        if (postDetailModal.classList.contains('active')) closeModal(postDetailModal);
+      }
+    });
+  </script>
+</body>
+</html>
