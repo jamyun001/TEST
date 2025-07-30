@@ -369,14 +369,14 @@
       <button id="loginTab" class="active" type="button">로그인</button>
       <button id="registerTab" type="button">회원가입</button>
     </div>
-    <form id="loginForm">
-      <input type="text" id="loginId" placeholder="아이디" required aria-label="아이디 입력" />
-      <input type="password" id="loginPassword" placeholder="비밀번호" required aria-label="비밀번호 입력" />
+    <form id="loginForm" style="display:flex; flex-direction: column;">
+      <input type="text" id="loginId" placeholder="아이디" required aria-label="아이디 입력" autocomplete="username" />
+      <input type="password" id="loginPassword" placeholder="비밀번호" required aria-label="비밀번호 입력" autocomplete="current-password" />
       <button id="submitLoginBtn" type="submit">로그인</button>
     </form>
     <form id="registerForm" style="display:none; flex-direction: column;">
-      <input type="text" id="registerId" placeholder="아이디" required aria-label="회원가입 아이디 입력" />
-      <input type="password" id="registerPassword" placeholder="비밀번호" required aria-label="회원가입 비밀번호 입력" />
+      <input type="text" id="registerId" placeholder="아이디" required aria-label="회원가입 아이디 입력" autocomplete="username" />
+      <input type="password" id="registerPassword" placeholder="비밀번호" required aria-label="회원가입 비밀번호 입력" autocomplete="new-password" />
       <input type="text" id="registerNickname" placeholder="닉네임" required aria-label="회원가입 닉네임 입력" />
       <button id="submitRegisterBtn" type="submit">회원가입</button>
     </form>
@@ -412,10 +412,10 @@
 </div>
 
 <script>
-  // 백엔드 서버 주소 (필요하면 변경)
+  // 서버 주소 (필요시 변경)
   const SERVER_URL = 'http://localhost:3000';
 
-  // 요소 선택
+  // 요소
   const postsListEl = document.querySelector('#postsList ul');
   const writePostBtn = document.getElementById('writePostBtn');
   const postModal = document.getElementById('postModal');
@@ -435,7 +435,6 @@
   const loginForm = document.getElementById('loginForm');
   const registerForm = document.getElementById('registerForm');
   const loginTab = document.getElementById('loginTab');
-  // 계속 이어서
   const registerTab = document.getElementById('registerTab');
   const loginBtn = document.getElementById('loginBtn');
   const logoutBtn = document.getElementById('logoutBtn');
@@ -447,23 +446,44 @@
 
   let posts = [];
   let selectedPost = null;
-  let token = null;
-  let nickname = null;
+  let token = null; // JWT 토큰 저장용
+  let nickname = ''; // 로그인 닉네임 저장용
 
-  // --- 유틸 함수 ---
-  function showModal(modal) {
-    modal.classList.add('active');
-    modal.focus();
+  // 토큰 저장/불러오기 (localStorage)
+  function saveToken(t) {
+    localStorage.setItem('jwtToken', t);
   }
-  function hideModal(modal) {
-    modal.classList.remove('active');
+  function loadToken() {
+    return localStorage.getItem('jwtToken');
   }
-  function setLoginState(isLoggedIn) {
-    if (isLoggedIn) {
+  function clearToken() {
+    localStorage.removeItem('jwtToken');
+  }
+
+  // 토큰에서 닉네임 추출 (payload decode)
+  function parseJwt(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  }
+
+  // 로그인 상태 UI 변경
+  function updateAuthUI() {
+    if (token) {
       loginBtn.style.display = 'none';
       logoutBtn.style.display = 'inline-block';
       writePostBtn.disabled = false;
-      commentAuthorInput.value = nickname || '';
+      commentAuthorInput.value = nickname;
     } else {
       loginBtn.style.display = 'inline-block';
       logoutBtn.style.display = 'none';
@@ -471,112 +491,174 @@
       commentAuthorInput.value = '';
     }
   }
-  function saveAuthData(tok, nick) {
-    localStorage.setItem('jwt_token', tok);
-    localStorage.setItem('user_nickname', nick);
+
+  // 모달 열기
+  function openModal(modal) {
+    modal.classList.add('active');
+    modal.setAttribute('tabindex', '-1');
+    modal.focus();
   }
-  function loadAuthData() {
-    const tok = localStorage.getItem('jwt_token');
-    const nick = localStorage.getItem('user_nickname');
-    return { tok, nick };
-  }
-  function clearAuthData() {
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('user_nickname');
-  }
-  function showError(message) {
-    alert(message);
+  // 모달 닫기
+  function closeModal(modal) {
+    modal.classList.remove('active');
+    if (modal === authModal) {
+      loginForm.reset();
+      registerForm.reset();
+      showLoginForm();
+    }
+    if (modal === postModal) {
+      postTitleInput.value = '';
+      postContentInput.value = '';
+    }
+    if (modal === postDetailModal) {
+      selectedPost = null;
+      commentsList.innerHTML = '';
+      commentTextInput.value = '';
+    }
   }
 
-  // --- 서버와 통신 함수 ---
-  async function fetchPosts() {
-    try {
-      const res = await fetch(`${SERVER_URL}/posts`);
-      if (!res.ok) throw new Error(`게시물 로드 실패: ${res.status}`);
-      posts = await res.json();
-      renderPosts(posts);
-    } catch (err) {
-      showError('게시물 불러오기 중 오류가 발생했습니다.');
-      console.error(err);
-    }
+  // 로그인 폼 보이기
+  function showLoginForm() {
+    loginForm.style.display = 'flex';
+    registerForm.style.display = 'none';
+    loginTab.classList.add('active');
+    registerTab.classList.remove('active');
   }
-  function renderPosts(postsArray) {
+
+  // 회원가입 폼 보이기
+  function showRegisterForm() {
+    loginForm.style.display = 'none';
+    registerForm.style.display = 'flex';
+    loginTab.classList.remove('active');
+    registerTab.classList.add('active');
+  }
+
+  // 게시글 리스트 렌더링
+  function renderPosts() {
+    const filterText = searchInput.value.trim().toLowerCase();
     postsListEl.innerHTML = '';
-    if (postsArray.length === 0) {
-      postsListEl.innerHTML = '<li>게시물이 없습니다.</li>';
+
+    const filteredPosts = posts.filter(post =>
+      post.title.toLowerCase().includes(filterText)
+    );
+
+    if (filteredPosts.length === 0) {
+      postsListEl.innerHTML = '<li>검색 결과가 없습니다.</li>';
       return;
     }
-    postsArray.forEach(post => {
+
+    filteredPosts.forEach(post => {
       const li = document.createElement('li');
       li.tabIndex = 0;
+      li.setAttribute('role', 'button');
+      li.setAttribute('aria-pressed', 'false');
       li.className = 'post-item';
-      li.dataset.id = post.id;
-      li.innerHTML = `
-        <div class="post-title">${post.title}</div>
-        <div class="post-meta">작성자: ${post.authorNickname || '익명'} | 작성일: ${new Date(post.createdAt).toLocaleString()}</div>
-      `;
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'post-title';
+      titleDiv.textContent = post.title;
+
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'post-meta';
+      const date = new Date(post.createdAt);
+      metaDiv.textContent = `${post.author} · ${date.toLocaleString()}`;
+
+      li.appendChild(titleDiv);
+      li.appendChild(metaDiv);
+
       li.addEventListener('click', () => openPostDetail(post.id));
-      li.addEventListener('keypress', (e) => {
+      li.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           openPostDetail(post.id);
         }
       });
+
       postsListEl.appendChild(li);
     });
   }
 
-  // --- 게시글 상세 모달 열기 ---
-  async function openPostDetail(postId) {
+  // 게시글 불러오기
+  async function fetchPosts() {
     try {
-      const res = await fetch(`${SERVER_URL}/posts/${postId}`);
-      if (!res.ok) throw new Error('게시글을 불러오지 못했습니다.');
-      selectedPost = await res.json();
-
-      postDetailTitle.textContent = selectedPost.title;
-      postDetailContent.textContent = selectedPost.content;
-
-      // 댓글 초기화 및 로드
-      renderComments(selectedPost.comments || []);
-      commentTextInput.value = '';
-      commentAuthorInput.value = nickname || '';
-
-      showModal(postDetailModal);
-    } catch (err) {
-      showError('게시글 상세보기 중 오류가 발생했습니다.');
-      console.error(err);
+      const res = await fetch(`${SERVER_URL}/posts`);
+      if (!res.ok) throw new Error('게시글을 불러오는데 실패했습니다.');
+      posts = await res.json();
+      renderPosts();
+    } catch (error) {
+      alert(error.message);
     }
   }
 
+  // 게시글 상세보기 열기
+  async function openPostDetail(postId) {
+    try {
+      const res = await fetch(`${SERVER_URL}/posts/${postId}`);
+      if (!res.ok) throw new Error('게시글을 불러오는데 실패했습니다.');
+      const post = await res.json();
+      selectedPost = post;
+
+      postDetailTitle.textContent = post.title;
+      postDetailContent.textContent = post.content;
+
+      // 댓글 불러오기
+      await fetchComments(postId);
+
+      // 댓글 작성자 이름 자동 입력
+      commentAuthorInput.value = nickname || '';
+
+      openModal(postDetailModal);
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  // 댓글 불러오기
+  async function fetchComments(postId) {
+    try {
+      const res = await fetch(`${SERVER_URL}/posts/${postId}/comments`);
+      if (!res.ok) throw new Error('댓글을 불러오는데 실패했습니다.');
+      const comments = await res.json();
+      renderComments(comments);
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  // 댓글 렌더링
   function renderComments(comments) {
     commentsList.innerHTML = '';
-    if (!comments.length) {
-      commentsList.innerHTML = '<p>댓글이 없습니다.</p>';
+    if (comments.length === 0) {
+      commentsList.textContent = '댓글이 없습니다.';
       return;
     }
-    comments.forEach(cmt => {
+    comments.forEach(comment => {
       const div = document.createElement('div');
       div.className = 'comment-item';
       div.tabIndex = 0;
-      div.innerHTML = `
-        <div class="comment-author">${cmt.authorNickname || '익명'}</div>
-        <div class="comment-text">${cmt.text}</div>
-        <div class="comment-date" style="font-size:0.75rem; color:#999;">${new Date(cmt.createdAt).toLocaleString()}</div>
-      `;
+
+      const author = document.createElement('div');
+      author.className = 'comment-author';
+      author.textContent = comment.author;
+
+      const text = document.createElement('div');
+      text.textContent = comment.content;
+
+      div.appendChild(author);
+      div.appendChild(text);
       commentsList.appendChild(div);
     });
   }
 
-  // --- 댓글 작성 ---
+  // 댓글 작성 핸들러
   commentForm.addEventListener('submit', async e => {
     e.preventDefault();
     if (!token) {
-      showError('댓글 작성은 로그인 후 가능합니다.');
+      alert('로그인이 필요합니다.');
       return;
     }
-    const text = commentTextInput.value.trim();
-    if (!text) {
-      showError('댓글 내용을 입력하세요.');
+    if (!commentTextInput.value.trim()) {
+      alert('댓글 내용을 입력하세요.');
       return;
     }
     try {
@@ -584,46 +666,45 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({
+          author: nickname,
+          content: commentTextInput.value.trim()
+        })
       });
-      if (!res.ok) throw new Error('댓글 작성 실패');
-      const newComment = await res.json();
-      selectedPost.comments.push(newComment);
-      renderComments(selectedPost.comments);
+      if (!res.ok) throw new Error('댓글 작성에 실패했습니다.');
       commentTextInput.value = '';
-    } catch (err) {
-      showError('댓글 작성 중 오류가 발생했습니다.');
-      console.error(err);
+      await fetchComments(selectedPost.id);
+    } catch (error) {
+      alert(error.message);
     }
   });
 
-  // --- 글쓰기 모달 열기/닫기 ---
+  // 글쓰기 버튼 클릭
   writePostBtn.addEventListener('click', () => {
     if (!token) {
-      showError('글쓰기는 로그인 후 가능합니다.');
+      alert('로그인이 필요합니다.');
       return;
     }
-    postTitleInput.value = '';
-    postContentInput.value = '';
-    showModal(postModal);
+    openModal(postModal);
   });
-  postModalCloseBtn.addEventListener('click', () => hideModal(postModal));
-  postDetailModalCloseBtn.addEventListener('click', () => hideModal(postDetailModal));
-  authModalCloseBtn.addEventListener('click', () => hideModal(authModal));
 
-  // --- 글쓰기 제출 ---
+  // 글쓰기 모달 닫기
+  postModalCloseBtn.addEventListener('click', () => {
+    closeModal(postModal);
+  });
+
+  // 게시글 작성 제출
   submitPostBtn.addEventListener('click', async () => {
-    if (!token) {
-      showError('글쓰기는 로그인 후 가능합니다.');
-      hideModal(postModal);
-      return;
-    }
     const title = postTitleInput.value.trim();
     const content = postContentInput.value.trim();
-    if (!title || !content) {
-      showError('제목과 내용을 모두 입력하세요.');
+    if (!title) {
+      alert('제목을 입력하세요.');
+      return;
+    }
+    if (!content) {
+      alert('내용을 입력하세요.');
       return;
     }
     try {
@@ -631,161 +712,132 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ title, content })
       });
-      if (!res.ok) throw new Error('글 작성 실패');
-      const newPost = await res.json();
-      posts.unshift(newPost);
-      renderPosts(posts);
-      hideModal(postModal);
-    } catch (err) {
-      showError('글 작성 중 오류가 발생했습니다.');
-      console.error(err);
+      if (!res.ok) throw new Error('게시글 작성에 실패했습니다.');
+      await fetchPosts();
+      closeModal(postModal);
+    } catch (error) {
+      alert(error.message);
     }
   });
 
-  // --- 검색 ---
-  searchInput.addEventListener('input', () => {
-    const keyword = searchInput.value.trim().toLowerCase();
-    const filtered = posts.filter(post => post.title.toLowerCase().includes(keyword));
-    renderPosts(filtered);
+  // 로그인/회원가입 모달 닫기
+  authModalCloseBtn.addEventListener('click', () => {
+    closeModal(authModal);
   });
 
-  // --- 로그인 / 로그아웃 ---
+  // 게시글 상세 모달 닫기
+  postDetailModalCloseBtn.addEventListener('click', () => {
+    closeModal(postDetailModal);
+  });
+
+  // 로그인 버튼 클릭
   loginBtn.addEventListener('click', () => {
-    // 로그인 모달 띄우기
-    setAuthTab('login');
-    showModal(authModal);
+    openModal(authModal);
+    showLoginForm();
   });
 
+  // 로그아웃 버튼 클릭
   logoutBtn.addEventListener('click', () => {
     token = null;
-    nickname = null;
-    clearAuthData();
-    setLoginState(false);
+    nickname = '';
+    clearToken();
+    updateAuthUI();
+    alert('로그아웃 되었습니다.');
   });
 
-  // --- 로그인/회원가입 탭 전환 ---
-  loginTab.addEventListener('click', () => setAuthTab('login'));
-  registerTab.addEventListener('click', () => setAuthTab('register'));
+  // 로그인 탭 클릭
+  loginTab.addEventListener('click', showLoginForm);
+  // 회원가입 탭 클릭
+  registerTab.addEventListener('click', showRegisterForm);
 
-  function setAuthTab(tab) {
-    if (tab === 'login') {
-      loginTab.classList.add('active');
-      registerTab.classList.remove('active');
-      loginForm.style.display = 'flex';
-      registerForm.style.display = 'none';
-      authModal.querySelector('h2').textContent = '로그인';
-    } else {
-      loginTab.classList.remove('active');
-      registerTab.classList.add('active');
-      loginForm.style.display = 'none';
-      registerForm.style.display = 'flex';
-      authModal.querySelector('h2').textContent = '회원가입';
-    }
-  }
-
-  // --- 로그인 제출 ---
+  // 로그인 폼 제출
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
     const id = document.getElementById('loginId').value.trim();
-    const pw = document.getElementById('loginPassword').value.trim();
-    if (!id || !pw) {
-      showError('아이디와 비밀번호를 입력하세요.');
+    const password = document.getElementById('loginPassword').value.trim();
+    if (!id || !password) {
+      alert('아이디와 비밀번호를 입력하세요.');
       return;
     }
     try {
       const res = await fetch(`${SERVER_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, password: pw })
+        body: JSON.stringify({ id, password })
       });
       if (!res.ok) {
-        if (res.status === 401) {
-          showError('아이디 또는 비밀번호가 틀렸습니다.');
-        } else {
-          showError('로그인 중 오류가 발생했습니다.');
-        }
-        return;
+        const errData = await res.json();
+        throw new Error(errData.message || '로그인 실패');
       }
       const data = await res.json();
       token = data.token;
-      nickname = data.nickname;
-      saveAuthData(token, nickname);
-      setLoginState(true);
-      hideModal(authModal);
-      loginForm.reset();
-    } catch (err) {
-      showError('로그인 요청 중 오류가 발생했습니다.');
-      console.error(err);
+      saveToken(token);
+      const payload = parseJwt(token);
+      nickname = payload ? payload.nickname : '';
+      updateAuthUI();
+      closeModal(authModal);
+      alert('로그인 성공');
+    } catch (error) {
+      alert(error.message);
     }
   });
 
-  // --- 회원가입 제출 ---
+  // 회원가입 폼 제출
   registerForm.addEventListener('submit', async e => {
     e.preventDefault();
     const id = document.getElementById('registerId').value.trim();
-    const pw = document.getElementById('registerPassword').value.trim();
+    const password = document.getElementById('registerPassword').value.trim();
     const nick = document.getElementById('registerNickname').value.trim();
-    if (!id || !pw || !nick) {
-      showError('모든 항목을 입력하세요.');
+    if (!id || !password || !nick) {
+      alert('모든 정보를 입력하세요.');
       return;
     }
     try {
       const res = await fetch(`${SERVER_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, password: pw, nickname: nick })
+        body: JSON.stringify({ id, password, nickname: nick })
       });
       if (!res.ok) {
-        if (res.status === 409) {
-          showError('이미 존재하는 아이디입니다.');
-        } else {
-          showError('회원가입 중 오류가 발생했습니다.');
-        }
-        return;
+        const errData = await res.json();
+        throw new Error(errData.message || '회원가입 실패');
       }
-      alert('회원가입이 완료되었습니다. 로그인해주세요.');
-      setAuthTab('login');
-      registerForm.reset();
-    } catch (err) {
-      showError('회원가입 요청 중 오류가 발생했습니다.');
-      console.error(err);
+      alert('회원가입 성공! 로그인 해주세요.');
+      showLoginForm();
+    } catch (error) {
+      alert(error.message);
     }
   });
 
-  // --- 초기 실행 ---
-  window.addEventListener('load', () => {
-    const authData = loadAuthData();
-    if (authData.tok && authData.nick) {
-      token = authData.tok;
-      nickname = authData.nick;
-      setLoginState(true);
-    } else {
-      setLoginState(false);
+  // 검색어 입력시 렌더링
+  searchInput.addEventListener('input', () => {
+    renderPosts();
+  });
+
+  // 초기 실행
+  (function init() {
+    token = loadToken();
+    if (token) {
+      const payload = parseJwt(token);
+      nickname = payload ? payload.nickname : '';
     }
+    updateAuthUI();
     fetchPosts();
-  });
+  })();
 
-  // 모달 밖 클릭 시 닫기
-  [authModal, postModal, postDetailModal].forEach(modal => {
-    modal.addEventListener('click', e => {
-      if (e.target === modal) {
-        hideModal(modal);
-      }
-    });
-  });
-
-  // ESC 키 누르면 모달 닫기
-  window.addEventListener('keydown', e => {
+  // ESC 키로 모달 닫기
+  document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      [authModal, postModal, postDetailModal].forEach(modal => {
-        if (modal.classList.contains('active')) hideModal(modal);
-      });
+      if (authModal.classList.contains('active')) closeModal(authModal);
+      if (postModal.classList.contains('active')) closeModal(postModal);
+      if (postDetailModal.classList.contains('active')) closeModal(postDetailModal);
     }
   });
+
 </script>
 </body>
 </html>
