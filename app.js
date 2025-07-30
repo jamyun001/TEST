@@ -1,58 +1,68 @@
 const express = require('express');
-const cors = require('cors');
 const sqlite3 = require('sqlite3');
+const { open } = require('sqlite');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
 const path = require('path');
-const bodyParser = require('body-parser');
-const { body, validationResult } = require('express-validator');
-
 const app = express();
+
 const PORT = 3000;
-const SECRET_KEY = 'your_secret_key';
-
-const db = new sqlite3.Database('./database.sqlite', (err) => {
-  if (err) return console.error(err.message);
-  console.log('Connected to SQLite database');
-});
-
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    nickname TEXT NOT NULL,
-    ip TEXT NOT NULL
-  )`);
-  db.run(`CREATE TABLE IF NOT EXISTS posts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    authorId INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(authorId) REFERENCES users(id)
-  )`);
-  db.run(`CREATE TABLE IF NOT EXISTS comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    postId INTEGER NOT NULL,
-    authorId INTEGER NOT NULL,
-    text TEXT NOT NULL,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(postId) REFERENCES posts(id),
-    FOREIGN KEY(authorId) REFERENCES users(id)
-  )`);
-});
+const JWT_SECRET = 'your_jwt_secret_here';
 
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(express.static('public'));
+
+let db;
+(async () => {
+  db = await open({
+    filename: './database.sqlite',
+    driver: sqlite3.Database
+  });
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE,
+      password TEXT,
+      nickname TEXT,
+      ip TEXT UNIQUE
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      title TEXT,
+      content TEXT,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(id)
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      postId INTEGER,
+      userId INTEGER,
+      content TEXT,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (postId) REFERENCES posts(id),
+      FOREIGN KEY (userId) REFERENCES users(id)
+    );
+  `);
+})();
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token' });
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
+  if (!authHeader) return res.status(401).json({ message: '로그인 필요' });
+  const token = authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ message: '토큰 없음' });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: '유효하지 않은 토큰' });
     req.user = user;
     next();
   });
@@ -62,127 +72,117 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.post('/auth/register',
-  body('username').isLength({ min: 3 }),
-  body('password').isLength({ min: 6 }),
-  body('nickname').notEmpty(),
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const { username, password, nickname } = req.body;
-
-    db.get('SELECT id FROM users WHERE ip = ?', [ip], (err, row) => {
-      if (err) return res.status(500).json({ error: 'DB error' });
-      if (row) return res.status(403).json({ error: '1 account per IP allowed' });
-
-      db.get('SELECT id FROM users WHERE username = ?', [username], (err, row) => {
-        if (row) return res.status(409).json({ error: 'Username exists' });
-
-        bcrypt.hash(password, 10, (err, hash) => {
-          if (err) return res.status(500).json({ error: 'Hash failed' });
-          db.run(
-            'INSERT INTO users (username, password, nickname, ip) VALUES (?, ?, ?, ?)',
-            [username, hash, nickname, ip],
-            function (err) {
-              if (err) return res.status(500).json({ error: 'Register failed' });
-              res.status(201).json({ message: 'Registered' });
-            }
-          );
-        });
-      });
-    });
-  }
-);
-
-app.post('/auth/login', (req, res) => {
-  const { id, password } = req.body;
+app.post('/signup', async (req, res) => {
+  const { username, password, nickname } = req.body;
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-  db.get('SELECT * FROM users WHERE username = ?', [id], (err, user) => {
-    if (err || !user) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!username || !password || !nickname) {
+    return res.status(400).json({ message: '모든 필드를 입력하세요.' });
+  }
 
-    bcrypt.compare(password, user.password, (err, result) => {
-      if (!result) return res.status(401).json({ error: 'Wrong password' });
+  try {
+    const existingIpUser = await db.get('SELECT * FROM users WHERE ip = ?', ip);
+    if (existingIpUser) {
+      return res.status(400).json({ message: 'IP당 1개의 계정만 가입 가능합니다.' });
+    }
 
-      const token = jwt.sign(
-        { userId: user.id, username: user.username, nickname: user.nickname, ip },
-        SECRET_KEY,
-        { expiresIn: '30d' }
-      );
-      res.json({ token, nickname: user.nickname });
-    });
-  });
+    const existingUser = await db.get('SELECT * FROM users WHERE username = ?', username);
+    if (existingUser) {
+      return res.status(400).json({ message: '이미 존재하는 아이디입니다.' });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    await db.run('INSERT INTO users (username, password, nickname, ip) VALUES (?, ?, ?, ?)', username, hashed, nickname, ip);
+    res.json({ message: '회원가입 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '서버 오류' });
+  }
 });
 
-app.get('/posts', (req, res) => {
-  db.all(`
-    SELECT posts.id, posts.title, posts.content, posts.createdAt, users.nickname AS authorNickname
-    FROM posts JOIN users ON posts.authorId = users.id
-    ORDER BY posts.createdAt DESC
-  `, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: 'Get posts failed' });
-    res.json(rows);
-  });
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  if (!username || !password) return res.status(400).json({ message: '아이디와 비밀번호를 입력하세요.' });
+
+  try {
+    const user = await db.get('SELECT * FROM users WHERE username = ?', username);
+    if (!user) return res.status(400).json({ message: '존재하지 않는 아이디입니다.' });
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) return res.status(400).json({ message: '비밀번호가 틀렸습니다.' });
+
+    const token = jwt.sign({ id: user.id, nickname: user.nickname }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ token, nickname: user.nickname });
+  } catch (e) {
+    res.status(500).json({ message: '서버 오류' });
+  }
 });
 
-app.get('/posts/:id', (req, res) => {
-  const postId = req.params.id;
-  db.get(`
-    SELECT posts.id, posts.title, posts.content, posts.createdAt, users.nickname AS authorNickname
-    FROM posts JOIN users ON posts.authorId = users.id WHERE posts.id = ?
-  `, [postId], (err, post) => {
-    if (err || !post) return res.status(404).json({ error: 'Post not found' });
-
-    db.all(`
-      SELECT comments.id, comments.text, comments.createdAt, users.nickname AS authorNickname
-      FROM comments JOIN users ON comments.authorId = users.id WHERE comments.postId = ?
-    `, [postId], (err, comments) => {
-      if (err) return res.status(500).json({ error: 'Get comments failed' });
-      post.comments = comments;
-      res.json(post);
-    });
-  });
+app.get('/posts', async (req, res) => {
+  try {
+    const posts = await db.all(`
+      SELECT posts.id, posts.title, posts.content, posts.createdAt, users.nickname
+      FROM posts
+      LEFT JOIN users ON posts.userId = users.id
+      ORDER BY posts.createdAt DESC
+    `);
+    res.json(posts);
+  } catch {
+    res.status(500).json({ message: '게시물 조회 실패' });
+  }
 });
 
-app.post('/posts', authenticateToken, (req, res) => {
+app.post('/posts', authenticateToken, async (req, res) => {
   const { title, content } = req.body;
-  const authorId = req.user.userId;
+  if (!title || !content) return res.status(400).json({ message: '제목과 내용을 입력하세요.' });
 
-  db.run('INSERT INTO posts (authorId, title, content) VALUES (?, ?, ?)',
-    [authorId, title, content],
-    function (err) {
-      if (err) return res.status(500).json({ error: 'Post failed' });
-      res.status(201).json({
-        id: this.lastID,
-        title,
-        content,
-        createdAt: new Date().toISOString(),
-        authorNickname: req.user.nickname
-      });
-    });
+  try {
+    await db.run('INSERT INTO posts (userId, title, content) VALUES (?, ?, ?)', req.user.id, title, content);
+    res.json({ message: '게시물 작성 완료' });
+  } catch {
+    res.status(500).json({ message: '게시물 작성 실패' });
+  }
 });
 
-app.post('/posts/:postId/comments', authenticateToken, (req, res) => {
-  const postId = req.params.postId;
-  const authorId = req.user.userId;
-  const { text } = req.body;
+app.get('/posts/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const post = await db.get(`
+      SELECT posts.id, posts.title, posts.content, posts.createdAt, users.nickname
+      FROM posts LEFT JOIN users ON posts.userId = users.id WHERE posts.id = ?
+    `, id);
+    if (!post) return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
 
-  db.run('INSERT INTO comments (postId, authorId, text) VALUES (?, ?, ?)',
-    [postId, authorId, text],
-    function (err) {
-      if (err) return res.status(500).json({ error: 'Comment failed' });
-      res.status(201).json({
-        id: this.lastID,
-        postId,
-        text,
-        createdAt: new Date().toISOString(),
-        authorNickname: req.user.nickname
-      });
-    });
+    const comments = await db.all(`
+      SELECT comments.id, comments.content, comments.createdAt, users.nickname
+      FROM comments LEFT JOIN users ON comments.userId = users.id
+      WHERE comments.postId = ?
+      ORDER BY comments.createdAt ASC
+    `, id);
+
+    post.comments = comments;
+    res.json(post);
+  } catch {
+    res.status(500).json({ message: '게시물 상세 조회 실패' });
+  }
+});
+
+app.post('/posts/:id/comments', authenticateToken, async (req, res) => {
+  const postId = req.params.id;
+  const { content } = req.body;
+  if (!content) return res.status(400).json({ message: '댓글 내용을 입력하세요.' });
+
+  try {
+    const post = await db.get('SELECT * FROM posts WHERE id = ?', postId);
+    if (!post) return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+
+    await db.run('INSERT INTO comments (postId, userId, content) VALUES (?, ?, ?)', postId, req.user.id, content);
+    res.json({ message: '댓글 작성 완료' });
+  } catch {
+    res.status(500).json({ message: '댓글 작성 실패' });
+  }
 });
 
 app.listen(PORT, () => {
-  console.log(`http://localhost:${PORT} 에서 서버 실행 중`);
+  console.log(`서버 실행 중: http://localhost:${PORT}`);
 });
