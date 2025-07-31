@@ -18,7 +18,7 @@
     background-color: var(--bg-color);
     -webkit-tap-highlight-color: transparent;
     min-height: 100vh;
-    padding-bottom: 60px;
+    padding-bottom: 70px;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   /* 라이트 모드 */
@@ -162,13 +162,14 @@
     margin: 0;
   }
   #postList li {
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: 10px;
     background: var(--comment-bg);
-    border: 1px solid var(--comment-border);
+    border: 1.5px solid var(--comment-border);
     margin-bottom: 12px;
     cursor: pointer;
-    transition: background 0.2s;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s;
   }
   #postList li:hover {
     background: var(--primary-color);
@@ -182,6 +183,7 @@
   }
   #postDetail h3 {
     margin-top: 0;
+    font-weight: 700;
   }
   #postDetail .post-meta {
     font-size: 0.85rem;
@@ -200,6 +202,9 @@
     cursor: pointer;
     margin-bottom: 20px;
   }
+  #backToListBtn:hover {
+    text-decoration: underline;
+  }
 
   /* 게시글 작성 */
   #writePostSection {
@@ -209,29 +214,30 @@
   #writePostSection input[type="text"],
   #writePostSection textarea {
     width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
     border: 1.5px solid var(--input-border);
     border-radius: 8px;
     background: var(--input-bg);
     color: var(--text-color);
     font-size: 1rem;
     outline-offset: 2px;
-  }
-  #writePostSection textarea {
-    min-height: 80px;
     resize: vertical;
   }
+  #writePostSection textarea {
+    min-height: 100px;
+  }
   #writePostSection button {
-    width: auto;
-    padding: 8px 18px;
-    font-weight: 600;
+    padding: 10px 20px;
+    font-weight: 700;
     background: var(--btn-bg);
     color: white;
     border-radius: 8px;
     border: none;
     cursor: pointer;
     transition: background 0.3s;
+    margin-right: 8px;
+    font-size: 1rem;
   }
   #writePostSection button:hover {
     background: var(--btn-hover-bg);
@@ -256,13 +262,13 @@
     background: var(--comment-bg);
     border: 1px solid var(--comment-border);
     border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
   }
   #commentsList li .author {
     font-weight: 700;
     font-size: 0.9rem;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
   #commentsList li .content {
     white-space: pre-wrap;
@@ -271,17 +277,17 @@
   #commentsList li .createdAt {
     font-size: 0.75rem;
     color: #777;
-    margin-top: 4px;
+    margin-top: 6px;
   }
 
   /* 댓글 작성 폼 */
   #commentForm {
     display: flex;
-    margin-top: 12px;
+    margin-top: 14px;
   }
   #commentInput {
     flex-grow: 1;
-    padding: 10px 12px;
+    padding: 10px 14px;
     border: 1.5px solid var(--input-border);
     border-radius: 8px 0 0 8px;
     font-size: 1rem;
@@ -290,11 +296,11 @@
     outline-offset: 2px;
   }
   #commentSubmitBtn {
-    padding: 0 16px;
+    padding: 0 20px;
     background: var(--btn-bg);
     border: none;
     color: white;
-    font-weight: 600;
+    font-weight: 700;
     border-radius: 0 8px 8px 0;
     cursor: pointer;
     transition: background 0.3s;
@@ -311,7 +317,7 @@
     background: var(--btn-bg);
     border: none;
     color: white;
-    padding: 6px 12px;
+    padding: 6px 14px;
     font-weight: 600;
     border-radius: 6px;
     cursor: pointer;
@@ -330,6 +336,30 @@
     text-align: center;
   }
 
+  /* 새 글 작성 버튼 - 오른쪽 하단 고정 */
+  #showWritePostBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--btn-bg);
+    border: none;
+    color: white;
+    padding: 14px 22px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.2);
+    transition: background 0.3s, transform 0.15s;
+    z-index: 90;
+  }
+  #showWritePostBtn:hover {
+    background: var(--btn-hover-bg);
+    transform: scale(1.05);
+  }
+  #showWritePostBtn:active {
+    transform: scale(0.95);
+  }
 </style>
 </head>
 <body class="light">
@@ -368,7 +398,6 @@
 <!-- 게시판 -->
 <section id="boardSection">
   <h2>게시판</h2>
-  <button id="showWritePostBtn">새 글 작성</button>
   <ul id="postList"></ul>
 
   <!-- 게시글 상세 -->
@@ -393,10 +422,15 @@
   <section id="writePostSection" style="display:none;">
     <input type="text" id="newPostTitle" placeholder="제목" />
     <textarea id="newPostContent" placeholder="내용"></textarea>
-    <button id="submitPostBtn">글 작성</button>
-    <button id="cancelPostBtn" style="margin-left:8px; background:#aaa;">취소</button>
+    <div>
+      <button id="submitPostBtn">글 작성</button>
+      <button id="cancelPostBtn" style="background:#aaa; color:#222;">취소</button>
+    </div>
   </section>
 </section>
+
+<!-- 새 글 작성 버튼 -->
+<button id="showWritePostBtn" title="새 글 작성">글쓰기 ✍️</button>
 
 <script>
   const SERVER_URL = 'https://foxbox.r-e.kr'; // 본인 서버 주소로 변경하세요
@@ -472,221 +506,284 @@
       if(loginForm.style.display === 'none'){
         registerForm.style.display = 'none';
         loginForm.style.display = 'block';
-        clearErrors();
       } else {
         loginForm.style.display = 'none';
         registerForm.style.display = 'block';
-        clearErrors();
       }
+      // 오류 메시지 초기화
+      loginError.textContent = '';
+      registerError.textContent = '';
     });
   });
 
-  function clearErrors(){
-    loginError.textContent = '';
-    registerError.textContent = '';
-  }
-
   // 로그인 함수
-  async function login(){
-    clearErrors();
+  async function login() {
+    loginError.textContent = '';
     const id = loginIdInput.value.trim();
     const password = loginPasswordInput.value.trim();
-    if(!id || !password){
+    if (!id || !password) {
       loginError.textContent = '아이디와 비밀번호를 입력하세요.';
       return;
     }
     try {
-      const res = await fetch(SERVER_URL + '/auth/login', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({id, password})
+      const res = await fetch(`${SERVER_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, password }),
       });
       const data = await res.json();
-      if(!res.ok){
+      if (!res.ok) {
         loginError.textContent = data.message || '로그인 실패';
         return;
       }
       token = data.token;
       localStorage.setItem('token', token);
-      showBoard();
-    } catch (err) {
-      loginError.textContent = '서버 오류. 다시 시도해주세요.';
+      onLoginSuccess();
+    } catch (e) {
+      loginError.textContent = '서버 오류가 발생했습니다.';
     }
   }
-  loginBtn.addEventListener('click', login);
 
   // 회원가입 함수
-  async function register(){
-    clearErrors();
+  async function register() {
+    registerError.textContent = '';
     const id = registerIdInput.value.trim();
     const password = registerPasswordInput.value.trim();
     const nickname = registerNicknameInput.value.trim();
-    if (!id || !password || !nickname){
+    if (!id || !password || !nickname) {
       registerError.textContent = '모든 항목을 입력하세요.';
       return;
     }
     try {
-      const res = await fetch(SERVER_URL + '/auth/register', {
+      const res = await fetch(`${SERVER_URL}/register`, {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({id, password, nickname})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, password, nickname }),
       });
       const data = await res.json();
-      if (!res.ok){
+      if (!res.ok) {
         registerError.textContent = data.message || '회원가입 실패';
         return;
       }
       alert('회원가입 성공! 로그인 해주세요.');
+      // 가입 후 로그인 폼으로 전환
       registerForm.style.display = 'none';
       loginForm.style.display = 'block';
-    } catch (err) {
-      registerError.textContent = '서버 오류. 다시 시도해주세요.';
+      registerError.textContent = '';
+      registerIdInput.value = '';
+      registerPasswordInput.value = '';
+      registerNicknameInput.value = '';
+    } catch (e) {
+      registerError.textContent = '서버 오류가 발생했습니다.';
     }
   }
-  registerBtn.addEventListener('click', register);
 
-  // 게시판 표시
-  function showBoard(){
+  // 로그인 성공 후 UI 전환
+  function onLoginSuccess() {
     authBox.style.display = 'none';
     boardSection.style.display = 'block';
-    logoutBtn.style.display = 'inline-block';
-    fetchPosts();
+    logoutBtn.style.display = 'block';
+    showWritePostBtn.style.display = 'block';
+    loadPosts();
   }
 
-  logoutBtn.addEventListener('click', () => {
+  // 로그아웃 함수
+  function logout() {
     token = null;
     localStorage.removeItem('token');
-    boardSection.style.display = 'none';
     authBox.style.display = 'block';
+    boardSection.style.display = 'none';
     logoutBtn.style.display = 'none';
-  });
+    showWritePostBtn.style.display = 'none';
+    currentPostId = null;
+    postDetail.style.display = 'none';
+    writePostSection.style.display = 'none';
+    loginIdInput.value = '';
+    loginPasswordInput.value = '';
+    loginError.textContent = '';
+  }
 
   // 게시글 목록 불러오기
-  async function fetchPosts(){
+  async function loadPosts() {
+    postList.innerHTML = '<li>불러오는 중...</li>';
     try {
-      const res = await fetch(SERVER_URL + '/posts');
+      const res = await fetch(`${SERVER_URL}/posts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '게시글 불러오기 실패');
+      if (data.length === 0) {
+        postList.innerHTML = '<li>등록된 게시글이 없습니다.</li>';
+        return;
+      }
       postList.innerHTML = '';
       data.forEach(post => {
         const li = document.createElement('li');
         li.textContent = post.title;
-        li.addEventListener('click', () => showPost(post._id));
+        li.dataset.id = post.id;
         postList.appendChild(li);
       });
-    } catch (err) {
-      alert('게시글을 불러오지 못했습니다.');
+    } catch (e) {
+      postList.innerHTML = `<li>${e.message}</li>`;
     }
   }
 
-  // 게시글 상세 보기
-  async function showPost(id){
+  // 게시글 상세보기
+  async function showPostDetail(id) {
     try {
-      const res = await fetch(SERVER_URL + `/posts/${id}`);
+      const res = await fetch(`${SERVER_URL}/posts/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '게시글 불러오기 실패');
+
       currentPostId = id;
       postTitle.textContent = data.title;
-      postAuthor.textContent = data.author.nickname;
+      postAuthor.textContent = data.authorNickname || data.authorId;
       postDate.textContent = new Date(data.createdAt).toLocaleString();
       postContent.textContent = data.content;
+
       postDetail.style.display = 'block';
       writePostSection.style.display = 'none';
-      showWritePostBtn.style.display = 'none';
-      fetchComments(id);
-    } catch (err) {
-      alert('게시글을 불러오지 못했습니다.');
+      postList.style.display = 'none';
+      commentsList.innerHTML = '';
+
+      // 댓글 불러오기
+      await loadComments(id);
+    } catch (e) {
+      alert(e.message);
     }
   }
 
-  backToListBtn.addEventListener('click', () => {
-    postDetail.style.display = 'none';
-    showWritePostBtn.style.display = 'inline-block';
-    fetchPosts();
-  });
-
-  // 글쓰기
-  showWritePostBtn.addEventListener('click', () => {
-    writePostSection.style.display = 'block';
-    postDetail.style.display = 'none';
-    showWritePostBtn.style.display = 'none';
-  });
-
-  cancelPostBtn.addEventListener('click', () => {
-    writePostSection.style.display = 'none';
-    showWritePostBtn.style.display = 'inline-block';
-    newPostTitle.value = '';
-    newPostContent.value = '';
-  });
-
-  submitPostBtn.addEventListener('click', async () => {
-    const title = newPostTitle.value.trim();
-    const content = newPostContent.value.trim();
-    if (!title || !content) return alert('제목과 내용을 입력해주세요.');
-    try {
-      const res = await fetch(SERVER_URL + '/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({title, content})
-      });
-      if (!res.ok) throw new Error();
-      alert('글이 등록되었습니다!');
-      newPostTitle.value = '';
-      newPostContent.value = '';
-      writePostSection.style.display = 'none';
-      showWritePostBtn.style.display = 'inline-block';
-      fetchPosts();
-    } catch {
-      alert('글 작성 실패');
-    }
-  });
-
   // 댓글 불러오기
-  async function fetchComments(postId){
+  async function loadComments(postId) {
+    commentsList.innerHTML = '<li>댓글 불러오는 중...</li>';
     try {
-      const res = await fetch(`${SERVER_URL}/comments/${postId}`);
+      const res = await fetch(`${SERVER_URL}/comments?postId=${postId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '댓글 불러오기 실패');
+      if (data.length === 0) {
+        commentsList.innerHTML = '<li>등록된 댓글이 없습니다.</li>';
+        return;
+      }
       commentsList.innerHTML = '';
-      data.forEach(c => {
+      data.forEach(comment => {
         const li = document.createElement('li');
-        li.innerHTML = `
-          <div class="author">${c.author.nickname}</div>
-          <div class="content">${c.content}</div>
-          <div class="createdAt">${new Date(c.createdAt).toLocaleString()}</div>
-        `;
+        const authorDiv = document.createElement('div');
+        authorDiv.className = 'author';
+        authorDiv.textContent = comment.authorNickname || comment.authorId;
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'content';
+        contentDiv.textContent = comment.content;
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'createdAt';
+        dateDiv.textContent = new Date(comment.createdAt).toLocaleString();
+        li.appendChild(authorDiv);
+        li.appendChild(contentDiv);
+        li.appendChild(dateDiv);
         commentsList.appendChild(li);
       });
-    } catch {
-      alert('댓글 불러오기 실패');
+    } catch (e) {
+      commentsList.innerHTML = `<li>${e.message}</li>`;
     }
   }
 
   // 댓글 작성
-  commentForm.addEventListener('submit', async e => {
+  async function submitComment(e) {
     e.preventDefault();
-    const content = commentInput.value.trim();
-    if (!content) return;
+    if (!commentInput.value.trim()) return;
     try {
-      const res = await fetch(`${SERVER_URL}/comments/${currentPostId}`, {
+      const res = await fetch(`${SERVER_URL}/comments`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          postId: currentPostId,
+          content: commentInput.value.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '댓글 작성 실패');
+      commentInput.value = '';
+      await loadComments(currentPostId);
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  // 새 글 작성 UI 표시
+  function showWritePost() {
+    writePostSection.style.display = 'block';
+    postDetail.style.display = 'none';
+    postList.style.display = 'block';
+    newPostTitle.value = '';
+    newPostContent.value = '';
+  }
+
+  // 새 글 작성 취소
+  function cancelWritePost() {
+    writePostSection.style.display = 'none';
+  }
+
+  // 새 글 작성 제출
+  async function submitPost() {
+    const title = newPostTitle.value.trim();
+    const content = newPostContent.value.trim();
+    if (!title || !content) {
+      alert('제목과 내용을 모두 입력하세요.');
+      return;
+    }
+    try {
+      const res = await fetch(`${SERVER_URL}/posts`, {
         method: 'POST',
         headers: {
-          'Content-Type':'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({content})
+        body: JSON.stringify({ title, content }),
       });
-      if (!res.ok) throw new Error();
-      commentInput.value = '';
-      fetchComments(currentPostId);
-    } catch {
-      alert('댓글 작성 실패');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '글 작성 실패');
+      alert('글이 등록되었습니다.');
+      writePostSection.style.display = 'none';
+      loadPosts();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  // 게시글 목록 클릭 이벤트 위임
+  postList.addEventListener('click', e => {
+    if (e.target.tagName === 'LI' && e.target.dataset.id) {
+      showPostDetail(e.target.dataset.id);
     }
   });
 
-  // 자동 로그인 처리
-  if (token) showBoard();
-</script>
+  // 뒤로가기 (목록으로)
+  backToListBtn.addEventListener('click', () => {
+    postDetail.style.display = 'none';
+    postList.style.display = 'block';
+    commentsList.innerHTML = '';
+    currentPostId = null;
+  });
 
+  // 이벤트 바인딩
+  loginBtn.addEventListener('click', login);
+  registerBtn.addEventListener('click', register);
+  logoutBtn.addEventListener('click', logout);
+  commentForm.addEventListener('submit', submitComment);
+  showWritePostBtn.addEventListener('click', showWritePost);
+  cancelPostBtn.addEventListener('click', cancelWritePost);
+  submitPostBtn.addEventListener('click', submitPost);
+
+  // 자동 로그인 체크
+  if (token) {
+    onLoginSuccess();
+  }
+</script>
 </body>
 </html>
