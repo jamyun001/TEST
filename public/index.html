@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>체르 갤러리</title>
 <style>
-  /* 기본 스타일 및 라이트/다크 모드 변수 */
+  /* 기본 & 리셋 */
   * {
     box-sizing: border-box;
   }
@@ -16,10 +16,12 @@
     line-height: 1.5;
     color: var(--text-color);
     background-color: var(--bg-color);
+    -webkit-tap-highlight-color: transparent;
     min-height: 100vh;
-    padding-bottom: 70px;
+    padding-bottom: 80px;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
+  /* 라이트 모드 */
   body.light {
     --bg-color: #f0f2f7;
     --text-color: #222;
@@ -32,6 +34,7 @@
     --comment-bg: #f8fbff;
     --comment-border: #d5dbed;
   }
+  /* 다크 모드 */
   body.dark {
     --bg-color: #12161f;
     --text-color: #eee;
@@ -44,11 +47,11 @@
     --comment-bg: #2a2e45;
     --comment-border: #394165;
   }
-
+  /* 헤더 */
   header {
     position: relative;
     text-align: center;
-    padding: 20px 0 16px;
+    padding: 16px 0 16px;
     border-bottom: 1px solid var(--input-border);
   }
   h1 {
@@ -56,141 +59,145 @@
     font-weight: 700;
     font-size: 1.6rem;
   }
-
-  /* 토글 및 로그아웃 버튼 */
-  #toggleThemeBtn {
+  /* 버거 메뉴 */
+  #burgerMenuBtn {
     position: fixed;
-    top: 10px;
-    left: 10px;
-    background: var(--btn-bg);
-    border: none;
-    color: white;
-    padding: 6px 12px;
-    font-weight: 700;
-    border-radius: 6px;
+    top: 12px;
+    left: 12px;
+    width: 34px;
+    height: 30px;
     cursor: pointer;
-    transition: background 0.3s;
-    z-index: 100;
-    user-select: none;
+    z-index: 110;
   }
-  #toggleThemeBtn:hover {
-    background: var(--btn-hover-bg);
+  #burgerMenuBtn div {
+    background-color: var(--primary-color);
+    height: 4px;
+    margin: 5px 0;
+    border-radius: 2px;
+    transition: 0.3s;
   }
-  #logoutBtn {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: var(--btn-bg);
-    border: none;
-    color: white;
-    padding: 6px 14px;
-    font-weight: 700;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s;
-    z-index: 100;
+  /* 버거 메뉴 열림 상태 애니 */
+  #burgerMenuBtn.open div:nth-child(1) {
+    transform: rotate(45deg) translate(7px, 7px);
   }
-  #logoutBtn:hover {
-    background: var(--btn-hover-bg);
+  #burgerMenuBtn.open div:nth-child(2) {
+    opacity: 0;
+  }
+  #burgerMenuBtn.open div:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
   }
 
-  /* 로그인/회원가입 박스 */
-  #authBox {
+  /* 사이드 메뉴 */
+  #sideMenu {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 260px;
+    height: 100vh;
     background: var(--modal-bg);
-    margin: 30px 16px;
-    padding: 20px 24px;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgb(0 0 0 / 0.1);
+    box-shadow: 3px 0 15px rgba(0,0,0,0.3);
+    padding: 24px;
+    transition: left 0.3s ease;
+    z-index: 105;
+    overflow-y: auto;
   }
-  #authBox h2 {
+  #sideMenu.open {
+    left: 0;
+  }
+  #sideMenu h2 {
     margin-top: 0;
-    font-weight: 600;
-    font-size: 1.3rem;
-    margin-bottom: 16px;
-    text-align: center;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
   }
-  #authBox input[type="text"],
-  #authBox input[type="password"] {
-    width: 100%;
-    padding: 12px 14px;
-    margin-bottom: 14px;
+  /* 로그인, 회원가입 폼 */
+  #sideMenu form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #sideMenu input[type="text"],
+  #sideMenu input[type="password"] {
+    padding: 10px 12px;
+    font-size: 1rem;
     border: 1.5px solid var(--input-border);
     border-radius: 8px;
     background: var(--input-bg);
     color: var(--text-color);
-    font-size: 1.05rem;
     outline-offset: 2px;
   }
-  #authBox input::placeholder {
+  #sideMenu input::placeholder {
     color: #999;
   }
-  #authBox button {
-    width: 100%;
-    padding: 12px 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
+  #sideMenu button {
+    padding: 10px;
+    font-weight: 600;
     background: var(--btn-bg);
+    border: none;
+    border-radius: 8px;
     color: white;
+    cursor: pointer;
     transition: background 0.3s;
   }
-  #authBox button:hover {
+  #sideMenu button:hover {
     background: var(--btn-hover-bg);
   }
-  #loginBtn {
-    width: auto;
-    padding: 8px 20px;
-    font-size: 1rem;
-    border-radius: 6px;
-    margin-top: 6px;
-    float: right;
-  }
-  #authToggleText {
-    margin-top: 16px;
-    text-align: center;
-    font-size: 1rem;
+  #toggleAuthMode {
+    margin-top: 12px;
     color: var(--primary-color);
     cursor: pointer;
-    user-select: none;
+    font-size: 0.9rem;
+    text-align: center;
   }
-  #authToggleText:hover {
+  #toggleAuthMode:hover {
     text-decoration: underline;
   }
+  .errorMsg {
+    color: #e53e3e;
+    font-size: 0.85rem;
+    text-align: center;
+    min-height: 1.2em;
+  }
 
-  /* 게시판 */
+  /* 게시판 영역 */
   #boardSection {
     margin: 16px;
   }
   #boardSection h2 {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     margin-bottom: 12px;
   }
 
-  /* 검색창 */
-  #searchBox {
-    margin-bottom: 16px;
+  /* 검색 및 카테고리 */
+  #searchArea {
     display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
   }
   #searchInput {
     flex-grow: 1;
-    padding: 10px 14px;
+    padding: 8px 12px;
     font-size: 1rem;
-    border-radius: 8px 0 0 8px;
+    border-radius: 8px;
     border: 1.5px solid var(--input-border);
-    border-right: none;
     background: var(--input-bg);
     color: var(--text-color);
-    outline-offset: 2px;
+  }
+  #categorySelect {
+    padding: 8px 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1.5px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-color);
   }
   #searchBtn {
-    padding: 10px 20px;
-    font-weight: 700;
+    padding: 8px 16px;
+    font-weight: 600;
     background: var(--btn-bg);
-    color: white;
-    border-radius: 0 8px 8px 0;
     border: none;
+    border-radius: 8px;
+    color: white;
     cursor: pointer;
     transition: background 0.3s;
   }
@@ -205,14 +212,13 @@
     margin: 0;
   }
   #postList li {
-    padding: 14px 16px;
-    border-radius: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
     background: var(--comment-bg);
     border: 1.5px solid var(--comment-border);
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     cursor: pointer;
-    font-weight: 600;
-    transition: background 0.25s, color 0.25s;
+    transition: background 0.2s, color 0.2s;
     display: flex;
     flex-direction: column;
   }
@@ -220,26 +226,15 @@
     background: var(--primary-color);
     color: white;
   }
-  #postList li .title-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  #postList li .title-row .title {
+  .post-title {
+    font-weight: 700;
     font-size: 1.1rem;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  #postList li .title-row .category {
-    font-size: 0.85rem;
-    font-weight: 500;
-    background: var(--primary-color);
-    padding: 2px 8px;
-    border-radius: 12px;
-    color: white;
-    user-select: none;
-  }
-  #postList li .preview {
-    margin-top: 6px;
-    font-weight: 400;
+  .post-preview {
     font-size: 0.9rem;
     color: #666;
     white-space: nowrap;
@@ -255,53 +250,105 @@
   #postDetail h3 {
     margin-top: 0;
     font-weight: 700;
-    font-size: 1.5rem;
   }
   #postDetail .post-meta {
     font-size: 0.85rem;
     color: #777;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   #postContent {
     white-space: pre-wrap;
-    font-size: 1.1rem;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
   #backToListBtn {
     background: transparent;
     border: none;
     color: var(--primary-color);
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
     margin-bottom: 20px;
-    font-size: 1rem;
   }
   #backToListBtn:hover {
     text-decoration: underline;
   }
 
-  /* 게시글 작성 */
+  /* 댓글 섹션 */
+  #commentsSection {
+    margin-top: 30px;
+  }
+  #commentsSection h4 {
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  #commentsList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  #commentsList li {
+    background: var(--comment-bg);
+    border: 1px solid var(--comment-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  #commentsList li .author {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+  #commentsList li .content {
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+  }
+  #commentsList li .createdAt {
+    font-size: 0.75rem;
+    color: #777;
+    margin-top: 6px;
+  }
+
+  /* 댓글 작성 폼 */
+  #commentForm {
+    display: flex;
+    margin-top: 14px;
+  }
+  #commentInput {
+    flex-grow: 1;
+    padding: 10px 14px;
+    border: 1.5px solid var(--input-border);
+    border-radius: 8px 0 0 8px;
+    font-size: 1rem;
+    background: var(--input-bg);
+    color: var(--text-color);
+    outline-offset: 2px;
+  }
+  #commentSubmitBtn {
+    padding: 0 20px;
+    background: var(--btn-bg);
+    border: none;
+    color: white;
+    font-weight: 700;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  #commentSubmitBtn:hover {
+    background: var(--btn-hover-bg);
+  }
+
+  /* 글 작성 섹션 */
   #writePostSection {
     margin: 16px;
     display: none;
-    background: var(--modal-bg);
-    padding: 24px 20px;
-    border-radius: 12px;
-    box-shadow: 0 0 14px rgb(0 0 0 / 0.15);
-  }
-  #writePostSection label {
-    font-weight: 700;
-    display: block;
-    margin-bottom: 6px;
-    font-size: 1rem;
-    color: var(--text-color);
   }
   #writePostSection input[type="text"],
   #writePostSection textarea,
   #writePostSection select {
     width: 100%;
-    padding: 12px 14px;
-    margin-bottom: 18px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
     border: 1.5px solid var(--input-border);
     border-radius: 8px;
     background: var(--input-bg);
@@ -311,10 +358,10 @@
     resize: vertical;
   }
   #writePostSection textarea {
-    min-height: 140px;
+    min-height: 100px;
   }
   #writePostSection button {
-    padding: 12px 24px;
+    padding: 10px 20px;
     font-weight: 700;
     background: var(--btn-bg);
     color: white;
@@ -322,79 +369,10 @@
     border: none;
     cursor: pointer;
     transition: background 0.3s;
-    margin-right: 12px;
-    font-size: 1.1rem;
+    margin-right: 8px;
+    font-size: 1rem;
   }
   #writePostSection button:hover {
-    background: var(--btn-hover-bg);
-  }
-
-  /* 댓글 섹션 */
-  #commentsSection {
-    margin-top: 30px;
-  }
-  #commentsSection h4 {
-    margin-bottom: 12px;
-    font-weight: 700;
-    font-size: 1.2rem;
-  }
-  #commentsList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    max-height: 280px;
-    overflow-y: auto;
-  }
-  #commentsList li {
-    background: var(--comment-bg);
-    border: 1px solid var(--comment-border);
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin-bottom: 14px;
-  }
-  #commentsList li .author {
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 8px;
-    color: var(--primary-color);
-  }
-  #commentsList li .content {
-    white-space: pre-wrap;
-    font-size: 1rem;
-  }
-  #commentsList li .createdAt {
-    font-size: 0.75rem;
-    color: #777;
-    margin-top: 8px;
-  }
-
-  /* 댓글 작성 폼 */
-  #commentForm {
-    display: flex;
-    margin-top: 18px;
-  }
-  #commentInput {
-    flex-grow: 1;
-    padding: 12px 16px;
-    border: 1.5px solid var(--input-border);
-    border-radius: 8px 0 0 8px;
-    font-size: 1rem;
-    background: var(--input-bg);
-    color: var(--text-color);
-    outline-offset: 2px;
-  }
-  #commentSubmitBtn {
-    padding: 0 24px;
-    background: var(--btn-bg);
-    border: none;
-    color: white;
-    font-weight: 700;
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    transition: background 0.3s;
-    font-size: 1rem;
-  }
-  #commentSubmitBtn:hover {
     background: var(--btn-hover-bg);
   }
 
@@ -406,31 +384,38 @@
     background: var(--btn-bg);
     border: none;
     color: white;
-    padding: 14px 28px;
+    padding: 14px 22px;
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     border-radius: 50px;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.2);
     transition: background 0.3s, transform 0.15s;
     z-index: 90;
-    user-select: none;
   }
   #showWritePostBtn:hover {
     background: var(--btn-hover-bg);
-    transform: scale(1.07);
+    transform: scale(1.05);
   }
   #showWritePostBtn:active {
     transform: scale(0.95);
   }
 
-  /* 오류 메시지 */
-  .errorMsg {
-    color: #e53e3e;
-    font-size: 0.9rem;
-    margin-bottom: 12px;
-    text-align: center;
-    min-height: 20px;
+  /* 로그아웃 버튼 - 사이드 메뉴 내 */
+  #logoutBtn {
+    margin-top: 16px;
+    width: 100%;
+    background: #d9534f;
+    border: none;
+    color: white;
+    padding: 10px 0;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  #logoutBtn:hover {
+    background: #c9302c;
   }
 </style>
 </head>
@@ -440,116 +425,107 @@
   <h1>체르 갤러리</h1>
 </header>
 
-<button id="toggleThemeBtn" title="라이트 / 다크 모드 전환">🌙</button>
-<button id="logoutBtn" style="display:none;">로그아웃</button>
-
-<!-- 로그인 / 회원가입 영역 -->
-<div id="authBox">
-  <!-- 로그인 폼 -->
-  <div id="loginForm">
-    <h2>로그인</h2>
-    <div class="errorMsg" id="loginError"></div>
-    <input type="text" id="loginId" placeholder="아이디" autocomplete="username" />
-    <input type="password" id="loginPassword" placeholder="비밀번호" autocomplete="current-password" />
-    <button id="loginBtn">로그인</button>
-    <div id="authToggleText">계정이 없으신가요? 회원가입</div>
-  </div>
-
-  <!-- 회원가입 폼 -->
-  <div id="registerForm" style="display:none;">
-    <h2>회원가입</h2>
-    <div class="errorMsg" id="registerError"></div>
-    <input type="text" id="registerId" placeholder="아이디" autocomplete="username" />
-    <input type="password" id="registerPassword" placeholder="비밀번호" autocomplete="new-password" />
-    <input type="text" id="registerNickname" placeholder="닉네임" />
-    <button id="registerBtn">회원가입</button>
-    <div id="authToggleText">이미 계정이 있으신가요? 로그인</div>
-  </div>
+<!-- 버거 메뉴 버튼 -->
+<div id="burgerMenuBtn" aria-label="메뉴 열기" role="button" tabindex="0">
+  <div></div><div></div><div></div>
 </div>
 
+<!-- 사이드 메뉴 -->
+<nav id="sideMenu" aria-hidden="true">
+  <h2 id="authTitle">로그인</h2>
+
+  <!-- 로그인 폼 -->
+  <form id="login-form">
+    <div class="errorMsg" id="loginError"></div>
+    <input type="text" id="loginId" placeholder="아이디" autocomplete="username" required />
+    <input type="password" id="loginPassword" placeholder="비밀번호" autocomplete="current-password" required />
+    <button type="submit">로그인</button>
+  </form>
+
+  <!-- 회원가입 폼 -->
+  <form id="register-form" style="display:none;">
+    <div class="errorMsg" id="registerError"></div>
+    <input type="text" id="registerId" placeholder="아이디" autocomplete="username" required />
+    <input type="password" id="registerPassword" placeholder="비밀번호" autocomplete="new-password" required />
+    <input type="text" id="registerNickname" placeholder="닉네임" required />
+    <button type="submit">회원가입</button>
+  </form>
+
+  <div id="toggleAuthMode" role="button" tabindex="0">계정이 없으신가요? 회원가입</div>
+
+  <button id="logoutBtn" style="display:none;">로그아웃</button>
+</nav>
+
 <!-- 게시판 -->
-<section id="boardSection" style="display:none;">
+<section id="boardSection">
   <h2>게시판</h2>
 
-  <!-- 검색 -->
-  <div id="searchBox">
-    <input type="text" id="searchInput" placeholder="제목 또는 내용 검색" />
+  <div id="searchArea">
+    <select id="categorySelect" aria-label="카테고리 선택">
+      <option value="">전체</option>
+      <option value="공지">공지</option>
+      <option value="자유">자유</option>
+      <option value="질문">질문</option>
+    </select>
+    <input type="text" id="searchInput" placeholder="검색어를 입력하세요" aria-label="게시물 검색어" />
     <button id="searchBtn">검색</button>
   </div>
 
-  <ul id="postList"></ul>
+  <ul id="postList" aria-live="polite" aria-label="게시글 목록">
+    <!-- 게시글 리스트 동적 생성 -->
+  </ul>
 
   <!-- 게시글 상세 -->
-  <div id="postDetail" style="display:none;">
+  <article id="postDetail" tabindex="0" aria-live="polite" aria-label="게시글 상세">
     <button id="backToListBtn">&lt; 목록으로</button>
     <h3 id="postTitle"></h3>
-    <div class="post-meta">작성자: <span id="postAuthor"></span> | 작성일: <span id="postDate"></span></div>
+    <div class="post-meta" aria-label="게시글 작성자 및 작성일">작성자: <span id="postAuthor"></span> | 작성일: <time id="postDate"></time></div>
     <div id="postContent"></div>
 
     <!-- 댓글 섹션 -->
     <section id="commentsSection">
       <h4>댓글</h4>
-      <ul id="commentsList"></ul>
-      <form id="commentForm" style="display:none;">
-        <input id="commentInput" placeholder="댓글 작성..." autocomplete="off" />
+      <ul id="commentsList" aria-live="polite" aria-label="댓글 목록"></ul>
+      <form id="commentForm" aria-label="댓글 작성 폼">
+        <input id="commentInput" placeholder="댓글 작성..." autocomplete="off" aria-required="true" />
         <button id="commentSubmitBtn" type="submit">등록</button>
       </form>
-      <div id="commentLoginNotice" style="color:#e53e3e; font-weight:700; margin-top:12px; display:none;">댓글을 작성하려면 로그인하세요.</div>
     </section>
-  </div>
+  </article>
 
-  <!-- 게시글 작성 섹션 -->
-  <section id="writePostSection" style="display:none;">
-    <label for="categorySelect">카테고리</label>
-    <select id="categorySelect" required>
-      <option value="" disabled selected>카테고리를 선택하세요</option>
+  <!-- 게시글 작성 -->
+  <section id="writePostSection" aria-label="게시글 작성" style="display:none;">
+    <select id="newPostCategory" aria-label="카테고리 선택" required>
+      <option value="" disabled selected>카테고리 선택</option>
+      <option value="공지">공지</option>
       <option value="자유">자유</option>
       <option value="질문">질문</option>
-      <option value="정보">정보</option>
-      <option value="잡담">잡담</option>
     </select>
-
-    <label for="newPostTitle">제목</label>
-    <input type="text" id="newPostTitle" placeholder="제목을 입력하세요" required />
-
-    <label for="newPostContent">내용</label>
-    <textarea id="newPostContent" placeholder="내용을 입력하세요" required></textarea>
-
-    <button id="submitPostBtn">작성하기</button>
-    <button id="cancelPostBtn">취소</button>
-    <div class="errorMsg" id="postErrorMsg"></div>
+    <input type="text" id="newPostTitle" placeholder="제목" required />
+    <textarea id="newPostContent" placeholder="내용" required></textarea>
+    <div>
+      <button id="submitPostBtn">글 작성</button>
+      <button id="cancelPostBtn" type="button" style="background:#aaa; color:#222;">취소</button>
+    </div>
   </section>
 </section>
 
 <!-- 새 글 작성 버튼 -->
-<button id="showWritePostBtn" title="새 글 작성" style="display:none;">글쓰기</button>
+<button id="showWritePostBtn" title="새 글 작성">글쓰기 ✍️</button>
 
 <script>
-  const API_BASE = 'https://foxbox.r-e.kr';
+  const SERVER_URL = 'http://foxbox.r-e.kr'; // HTTP 서버 주소
 
-  // 현재 로그인 사용자 정보 (null이면 비로그인 상태)
-  let currentUser = null;
-
-  // --- DOM 요소 ---
+  // DOM elements
   const body = document.body;
-  const toggleThemeBtn = document.getElementById('toggleThemeBtn');
+  const burgerMenuBtn = document.getElementById('burgerMenuBtn');
+  const sideMenu = document.getElementById('sideMenu');
+  const authTitle = document.getElementById('authTitle');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const toggleAuthMode = document.getElementById('toggleAuthMode');
   const logoutBtn = document.getElementById('logoutBtn');
-  const authBox = document.getElementById('authBox');
-  const loginForm = document.getElementById('loginForm');
-  const registerForm = document.getElementById('registerForm');
-  const loginError = document.getElementById('loginError');
-  const registerError = document.getElementById('registerError');
-  const loginId = document.getElementById('loginId');
-  const loginPassword = document.getElementById('loginPassword');
-  const loginBtn = document.getElementById('loginBtn');
-  const registerId = document.getElementById('registerId');
-  const registerPassword = document.getElementById('registerPassword');
-  const registerNickname = document.getElementById('registerNickname');
-  const registerBtn = document.getElementById('registerBtn');
-  const authToggleTexts = document.querySelectorAll('#authToggleText');
-  const boardSection = document.getElementById('boardSection');
-  const searchInput = document.getElementById('searchInput');
-  const searchBtn = document.getElementById('searchBtn');
+
   const postList = document.getElementById('postList');
   const postDetail = document.getElementById('postDetail');
   const backToListBtn = document.getElementById('backToListBtn');
@@ -557,433 +533,434 @@
   const postAuthor = document.getElementById('postAuthor');
   const postDate = document.getElementById('postDate');
   const postContent = document.getElementById('postContent');
+
+  const commentsSection = document.getElementById('commentsSection');
   const commentsList = document.getElementById('commentsList');
   const commentForm = document.getElementById('commentForm');
   const commentInput = document.getElementById('commentInput');
-  const commentLoginNotice = document.getElementById('commentLoginNotice');
-  const showWritePostBtn = document.getElementById('showWritePostBtn');
+
   const writePostSection = document.getElementById('writePostSection');
-  const categorySelect = document.getElementById('categorySelect');
+  const showWritePostBtn = document.getElementById('showWritePostBtn');
+  const newPostCategory = document.getElementById('newPostCategory');
   const newPostTitle = document.getElementById('newPostTitle');
   const newPostContent = document.getElementById('newPostContent');
   const submitPostBtn = document.getElementById('submitPostBtn');
   const cancelPostBtn = document.getElementById('cancelPostBtn');
-  const postErrorMsg = document.getElementById('postErrorMsg');
 
-  // 현재 보고 있는 게시글 ID
-  let currentPostId = null;
+  const categorySelect = document.getElementById('categorySelect');
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
 
-  // --- 다크/라이트 모드 저장 & 토글 ---
-  function loadTheme() {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark') {
-      body.classList.remove('light');
-      body.classList.add('dark');
-      toggleThemeBtn.textContent = '☀️';
-    } else {
-      body.classList.remove('dark');
-      body.classList.add('light');
-      toggleThemeBtn.textContent = '🌙';
-    }
+  const loginError = document.getElementById('loginError');
+  const registerError = document.getElementById('registerError');
+
+  let posts = [];
+  let currentPost = null;
+  let isLoginMode = true;
+  let token = localStorage.getItem('token') || null;
+  let nickname = localStorage.getItem('nickname') || null;
+
+  // 초기 설정
+  function init() {
+    updateAuthUI();
+    fetchPosts();
   }
-  toggleThemeBtn.addEventListener('click', () => {
-    if (body.classList.contains('light')) {
-      body.classList.remove('light');
-      body.classList.add('dark');
-      toggleThemeBtn.textContent = '☀️';
-      localStorage.setItem('theme', 'dark');
-    } else {
-      body.classList.remove('dark');
-      body.classList.add('light');
-      toggleThemeBtn.textContent = '🌙';
-      localStorage.setItem('theme', 'light');
+
+  // 버거 메뉴 토글
+  burgerMenuBtn.addEventListener('click', () => {
+    const opened = sideMenu.classList.toggle('open');
+    burgerMenuBtn.classList.toggle('open', opened);
+    sideMenu.setAttribute('aria-hidden', !opened);
+  });
+
+  // 키보드 접근성 지원
+  burgerMenuBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      burgerMenuBtn.click();
     }
   });
-  loadTheme();
 
-  // --- 로그인 / 회원가입 폼 토글 ---
-  authToggleTexts.forEach(textEl => {
-    textEl.addEventListener('click', () => {
-      if (loginForm.style.display === 'none') {
-        loginForm.style.display = 'block';
+  // 로그인 / 회원가입 모드 토글
+  toggleAuthMode.addEventListener('click', () => {
+    isLoginMode = !isLoginMode;
+    updateAuthUI();
+  });
+  toggleAuthMode.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleAuthMode.click();
+    }
+  });
+
+  function updateAuthUI() {
+    if (token) {
+      // 로그인 상태
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'none';
+      toggleAuthMode.style.display = 'none';
+      logoutBtn.style.display = 'block';
+      authTitle.textContent = `${nickname} 님 환영합니다!`;
+    } else {
+      logoutBtn.style.display = 'none';
+      toggleAuthMode.style.display = 'block';
+      if (isLoginMode) {
+        loginForm.style.display = 'flex';
         registerForm.style.display = 'none';
-        loginError.textContent = '';
-        registerError.textContent = '';
+        authTitle.textContent = '로그인';
+        toggleAuthMode.textContent = '계정이 없으신가요? 회원가입';
       } else {
         loginForm.style.display = 'none';
-        registerForm.style.display = 'block';
-        loginError.textContent = '';
-        registerError.textContent = '';
+        registerForm.style.display = 'flex';
+        authTitle.textContent = '회원가입';
+        toggleAuthMode.textContent = '계정이 있으신가요? 로그인';
       }
-    });
-  });
-
-  // --- 로그인 함수 ---
-  async function login() {
-    loginError.textContent = '';
-    const id = loginId.value.trim();
-    const pw = loginPassword.value;
-    if (!id || !pw) {
-      loginError.textContent = '아이디와 비밀번호를 입력하세요.';
-      return;
-    }
-    try {
-      const res = await fetch(`${API_BASE}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, password: pw })
-      });
-      if (!res.ok) throw new Error('로그인 실패');
-      const data = await res.json();
-      if (data.token) {
-        currentUser = { id, nickname: data.nickname || id, token: data.token };
-        saveSession();
-        updateUIByLoginStatus();
-        await loadPosts();
-      } else {
-        loginError.textContent = '로그인에 실패했습니다.';
-      }
-    } catch (e) {
-      loginError.textContent = '서버 오류가 발생했습니다.';
-      console.error(e);
     }
   }
-  loginBtn.addEventListener('click', login);
 
-  // --- 회원가입 함수 ---
-  async function register() {
-    registerError.textContent = '';
-    const id = registerId.value.trim();
-    const pw = registerPassword.value;
-    const nickname = registerNickname.value.trim();
-    if (!id || !pw || !nickname) {
-      registerError.textContent = '모든 항목을 입력하세요.';
-      return;
-    }
-    try {
-      const res = await fetch(`${API_BASE}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, password: pw, nickname })
-      });
-      if (!res.ok) throw new Error('회원가입 실패');
-      const data = await res.json();
-      if (data.success) {
-        alert('회원가입 성공! 로그인 해주세요.');
-        // 회원가입 후 로그인 폼 보이기
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-        registerError.textContent = '';
-      } else {
-        registerError.textContent = data.message || '회원가입 실패';
-      }
-    } catch (e) {
-      registerError.textContent = '서버 오류가 발생했습니다.';
-      console.error(e);
-    }
-  }
-  registerBtn.addEventListener('click', register);
-
-  // --- 로그아웃 ---
+  // 로그아웃
   logoutBtn.addEventListener('click', () => {
-    currentUser = null;
-    clearSession();
-    updateUIByLoginStatus();
+    token = null;
+    nickname = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('nickname');
+    updateAuthUI();
+    showPostList();
   });
 
-  // --- 세션 저장/불러오기 ---
-  function saveSession() {
-    if (currentUser) {
-      localStorage.setItem('session', JSON.stringify(currentUser));
+  // 로그인 폼 제출
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.textContent = '';
+    const id = document.getElementById('loginId').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if (!id || !password) {
+      loginError.textContent = '아이디와 비밀번호를 모두 입력해주세요.';
+      return;
     }
-  }
-  function loadSession() {
-    const sess = localStorage.getItem('session');
-    if (sess) {
-      try {
-        currentUser = JSON.parse(sess);
-        // TODO: 여기서 토큰 유효성 검사 API 있으면 호출 권장
-      } catch {
-        currentUser = null;
-      }
-    }
-  }
-  function clearSession() {
-    localStorage.removeItem('session');
-  }
-
-  // --- UI 업데이트 ---
-  function updateUIByLoginStatus() {
-    if (currentUser) {
-      authBox.style.display = 'none';
-      logoutBtn.style.display = 'block';
-      boardSection.style.display = 'block';
-      showWritePostBtn.style.display = 'block';
-      commentForm.style.display = 'flex';
-      commentLoginNotice.style.display = 'none';
-      writePostSection.style.display = 'none';
-    } else {
-      authBox.style.display = 'block';
-      logoutBtn.style.display = 'none';
-      boardSection.style.display = 'block';
-      showWritePostBtn.style.display = 'none';
-      commentForm.style.display = 'none';
-      commentLoginNotice.style.display = 'block';
-      writePostSection.style.display = 'none';
-    }
-    clearPostDetail();
-  }
-
-  // --- 게시글 불러오기 ---
-  async function loadPosts(searchKeyword = '') {
-    postList.innerHTML = '로딩 중...';
     try {
-      const url = new URL(`${API_BASE}/posts`);
-      if (searchKeyword) url.searchParams.append('q', searchKeyword);
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('게시글 불러오기 실패');
-      const posts = await res.json();
-
-      if (!Array.isArray(posts) || posts.length === 0) {
-        postList.innerHTML = '<li>게시글이 없습니다.</li>';
+      const res = await fetch(`${SERVER_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        loginError.textContent = data.message || '로그인 실패';
         return;
       }
-      postList.innerHTML = '';
-      posts.forEach(post => {
-        const li = document.createElement('li');
-        li.dataset.postId = post.id;
-        li.innerHTML = `
-          <div class="title-row">
-            <span class="title">${escapeHtml(post.title)}</span>
-            <span class="category">${escapeHtml(post.category)}</span>
-          </div>
-          <div class="preview">${escapeHtml(post.content).slice(0, 70)}</div>
-        `;
-        li.addEventListener('click', () => {
-          showPostDetail(post.id);
-        });
-        postList.appendChild(li);
+      token = data.token;
+      nickname = data.nickname || id;
+      localStorage.setItem('token', token);
+      localStorage.setItem('nickname', nickname);
+      updateAuthUI();
+      closeSideMenu();
+      showPostList();
+    } catch (err) {
+      loginError.textContent = '서버와 연결할 수 없습니다.';
+    }
+  });
+
+  // 회원가입 폼 제출
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    registerError.textContent = '';
+    const id = document.getElementById('registerId').value.trim();
+    const password = document.getElementById('registerPassword').value.trim();
+    const nick = document.getElementById('registerNickname').value.trim();
+    if (!id || !password || !nick) {
+      registerError.textContent = '모든 항목을 입력해주세요.';
+      return;
+    }
+    try {
+      const res = await fetch(`${SERVER_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, password, nickname: nick }),
       });
-    } catch (e) {
-      postList.innerHTML = '<li>게시글을 불러오는 중 오류가 발생했습니다.</li>';
-      console.error(e);
+      const data = await res.json();
+      if (!res.ok) {
+        registerError.textContent = data.message || '회원가입 실패';
+        return;
+      }
+      alert('회원가입 성공! 로그인 해주세요.');
+      isLoginMode = true;
+      updateAuthUI();
+    } catch (err) {
+      registerError.textContent = '서버와 연결할 수 없습니다.';
+    }
+  });
+
+  // 게시글 리스트 불러오기
+  async function fetchPosts() {
+    try {
+      const res = await fetch(`${SERVER_URL}/posts`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '게시글 불러오기 실패');
+      posts = data.posts || [];
+      renderPostList(posts);
+    } catch (err) {
+      alert(err.message);
     }
   }
 
-  // --- 게시글 상세보기 ---
+  // 게시글 리스트 렌더링
+  function renderPostList(postsToRender) {
+    postList.innerHTML = '';
+    if (postsToRender.length === 0) {
+      postList.innerHTML = '<li>게시글이 없습니다.</li>';
+      return;
+    }
+    postsToRender.forEach(post => {
+      const li = document.createElement('li');
+      li.className = 'post-card';
+      li.setAttribute('tabindex', '0');
+      li.innerHTML = `
+        <div class="post-title">${escapeHtml(post.title)}</div>
+        <div class="post-preview">${escapeHtml(post.content ? post.content.substring(0, 80) : '')}</div>
+      `;
+      li.addEventListener('click', () => {
+        showPostDetail(post.id);
+      });
+      li.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          li.click();
+        }
+      });
+      postList.appendChild(li);
+    });
+    showPostList();
+  }
+
+  // 게시글 상세 보기
   async function showPostDetail(postId) {
     try {
-      const res = await fetch(`${API_BASE}/posts/${postId}`);
-      if (!res.ok) throw new Error('게시글 불러오기 실패');
-      const post = await res.json();
+      const res = await fetch(`${SERVER_URL}/posts/${postId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '게시글 상세 불러오기 실패');
+      currentPost = data.post;
+      postTitle.textContent = currentPost.title;
+      postAuthor.textContent = currentPost.nickname || currentPost.author || '알 수 없음';
+      postDate.textContent = new Date(currentPost.createdAt).toLocaleString();
+      postContent.textContent = currentPost.content;
 
-      currentPostId = postId;
+      renderComments(currentPost.comments || []);
 
-      postTitle.textContent = post.title;
-      postAuthor.textContent = post.nickname || post.author || '익명';
-      postDate.textContent = new Date(post.createdAt).toLocaleString();
-      postContent.textContent = post.content;
-
-      // 댓글 불러오기
-      await loadComments(postId);
-
+      // UI 전환
+      document.getElementById('boardSection').style.display = 'none';
       postDetail.style.display = 'block';
-      boardSection.querySelector('#postList').style.display = 'none';
-      boardSection.querySelector('#searchBox').style.display = 'none';
-
-      // 댓글 작성 가능 여부
-      if (currentUser) {
-        commentForm.style.display = 'flex';
-        commentLoginNotice.style.display = 'none';
-      } else {
-        commentForm.style.display = 'none';
-        commentLoginNotice.style.display = 'block';
-      }
-
-      // 글쓰기 영역 숨기기
       writePostSection.style.display = 'none';
-      showWritePostBtn.style.display = currentUser ? 'block' : 'none';
-    } catch (e) {
-      alert('게시글을 불러오는 중 오류가 발생했습니다.');
-      console.error(e);
+      commentsSection.style.display = 'block';
+    } catch (err) {
+      alert(err.message);
     }
   }
 
-  // --- 댓글 불러오기 ---
-  async function loadComments(postId) {
-    commentsList.innerHTML = '댓글 불러오는 중...';
-    try {
-      const res = await fetch(`${API_BASE}/posts/${postId}/comments`);
-      if (!res.ok) throw new Error('댓글 불러오기 실패');
-      const comments = await res.json();
-
-      if (!Array.isArray(comments) || comments.length === 0) {
-        commentsList.innerHTML = '<li>댓글이 없습니다.</li>';
-        return;
-      }
-      commentsList.innerHTML = '';
-      comments.forEach(c => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <div class="author">${escapeHtml(c.nickname || c.author || '익명')}</div>
-          <div class="content">${escapeHtml(c.content)}</div>
-          <div class="createdAt">${new Date(c.createdAt).toLocaleString()}</div>
-        `;
-        commentsList.appendChild(li);
-      });
-    } catch (e) {
-      commentsList.innerHTML = '<li>댓글을 불러오는 중 오류가 발생했습니다.</li>';
-      console.error(e);
+  // 댓글 렌더링
+  function renderComments(comments) {
+    commentsList.innerHTML = '';
+    if (comments.length === 0) {
+      commentsList.innerHTML = '<li>댓글이 없습니다.</li>';
+      return;
     }
+    comments.forEach(c => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="author">${escapeHtml(c.nickname || c.author || '익명')}</div>
+        <div class="content">${escapeHtml(c.content)}</div>
+        <div class="createdAt">${new Date(c.createdAt).toLocaleString()}</div>
+      `;
+      commentsList.appendChild(li);
+    });
   }
 
-  // --- 댓글 작성 ---
+  // 댓글 작성
   commentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!currentUser) {
-      alert('댓글을 작성하려면 로그인하세요.');
+    if (!token) {
+      alert('댓글 작성은 로그인 후 가능합니다.');
       return;
     }
     const content = commentInput.value.trim();
-    if (!content) {
-      alert('댓글 내용을 입력하세요.');
-      return;
-    }
+    if (!content) return;
+
     try {
-      const res = await fetch(`${API_BASE}/posts/${currentPostId}/comments`, {
+      const res = await fetch(`${SERVER_URL}/posts/${currentPost.id}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentUser.token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content })
+        body: JSON.stringify({ content }),
       });
-      if (!res.ok) throw new Error('댓글 작성 실패');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || '댓글 작성 실패');
       commentInput.value = '';
-      await loadComments(currentPostId);
-    } catch (e) {
-      alert('댓글 작성 중 오류가 발생했습니다.');
-      console.error(e);
+      // 댓글 최신화
+      showPostDetail(currentPost.id);
+    } catch (err) {
+      alert(err.message);
     }
   });
 
-  // --- 게시글 작성 버튼 클릭 ---
+  // 게시글 리스트 보기로 돌아가기
+  backToListBtn.addEventListener('click', () => {
+    showPostList();
+  });
+
+  function showPostList() {
+    document.getElementById('boardSection').style.display = 'block';
+    postDetail.style.display = 'none';
+    writePostSection.style.display = 'none';
+  }
+
+  // 새 글 작성 버튼 클릭
   showWritePostBtn.addEventListener('click', () => {
-    if (!currentUser) {
-      alert('글 작성을 위해 로그인하세요.');
+    if (!token) {
+      alert('게시물 작성은 로그인 후 가능합니다.');
       return;
     }
+    document.getElementById('boardSection').style.display = 'none';
     postDetail.style.display = 'none';
     writePostSection.style.display = 'block';
-    showWritePostBtn.style.display = 'none';
-    // 초기화
-    categorySelect.value = '';
-    newPostTitle.value = '';
-    newPostContent.value = '';
-    postErrorMsg.textContent = '';
   });
 
-  // --- 게시글 작성 취소 ---
+  // 글 작성 취소
   cancelPostBtn.addEventListener('click', () => {
-    writePostSection.style.display = 'none';
-    showWritePostBtn.style.display = 'block';
-    if (currentPostId) {
-      showPostDetail(currentPostId);
-    } else {
-      clearPostDetail();
-    }
+    showPostList();
+    clearWritePostForm();
   });
 
-  // --- 게시글 작성 제출 ---
+  // 글 작성 제출
   submitPostBtn.addEventListener('click', async () => {
-    postErrorMsg.textContent = '';
-    const category = categorySelect.value;
+    if (!token) {
+      alert('게시물 작성은 로그인 후 가능합니다.');
+      return;
+    }
+    const category = newPostCategory.value;
     const title = newPostTitle.value.trim();
     const content = newPostContent.value.trim();
     if (!category) {
-      postErrorMsg.textContent = '카테고리를 선택하세요.';
+      alert('카테고리를 선택해주세요.');
       return;
     }
     if (!title) {
-      postErrorMsg.textContent = '제목을 입력하세요.';
+      alert('제목을 입력해주세요.');
       return;
     }
     if (!content) {
-      postErrorMsg.textContent = '내용을 입력하세요.';
+      alert('내용을 입력해주세요.');
       return;
     }
-    if (!currentUser) {
-      postErrorMsg.textContent = '로그인 후 작성 가능합니다.';
-      return;
-    }
+
     try {
-      const res = await fetch(`${API_BASE}/posts`, {
+      const res = await fetch(`${SERVER_URL}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentUser.token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ category, title, content })
+        body: JSON.stringify({ category, title, content }),
       });
-      if (!res.ok) throw new Error('게시글 작성 실패');
       const data = await res.json();
-      alert('게시글이 성공적으로 작성되었습니다.');
-      writePostSection.style.display = 'none';
-      showWritePostBtn.style.display = 'block';
-      await loadPosts();
-    } catch (e) {
-      postErrorMsg.textContent = '게시글 작성 중 오류가 발생했습니다.';
-      console.error(e);
+      if (!res.ok) throw new Error(data.message || '글 작성 실패');
+      alert('글 작성 완료!');
+      clearWritePostForm();
+      fetchPosts();
+      showPostList();
+    } catch (err) {
+      alert(err.message);
     }
   });
 
-  // --- 목록으로 버튼 클릭 ---
-  backToListBtn.addEventListener('click', () => {
-    clearPostDetail();
-  });
-
-  // --- 게시글 상세 숨기고 목록 보여주기 ---
-  function clearPostDetail() {
-    postDetail.style.display = 'none';
-    boardSection.querySelector('#postList').style.display = 'block';
-    boardSection.querySelector('#searchBox').style.display = 'flex';
-    currentPostId = null;
+  function clearWritePostForm() {
+    newPostCategory.value = '';
+    newPostTitle.value = '';
+    newPostContent.value = '';
   }
 
-  // --- 검색 버튼 클릭 ---
+  // 검색 버튼 클릭
   searchBtn.addEventListener('click', () => {
-    const keyword = searchInput.value.trim();
-    loadPosts(keyword);
-  });
-
-  // --- 엔터키로 검색 가능하게 ---
-  searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      searchBtn.click();
-    }
-  });
-
-  // --- HTML escape 함수 ---
-  function escapeHtml(text) {
-    return text.replace(/[&<>"']/g, (m) => {
-      switch(m) {
-        case '&': return '&amp;';
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '"': return '&quot;';
-        case "'": return '&#39;';
-        default: return m;
-      }
+    const keyword = searchInput.value.trim().toLowerCase();
+    const category = categorySelect.value;
+    const filtered = posts.filter(post => {
+      const matchesCategory = !category || post.category === category;
+      const matchesKeyword =
+        !keyword ||
+        (post.title && post.title.toLowerCase().includes(keyword)) ||
+        (post.content && post.content.toLowerCase().includes(keyword));
+      return matchesCategory && matchesKeyword;
     });
+    renderPostList(filtered);
+  });
+
+  // 카테고리 변경 시 검색 효과 (즉시 필터링)
+  categorySelect.addEventListener('change', () => {
+    searchBtn.click();
+  });
+
+  // 사이드 메뉴 닫기
+  function closeSideMenu() {
+    sideMenu.classList.remove('open');
+    burgerMenuBtn.classList.remove('open');
+    sideMenu.setAttribute('aria-hidden', 'true');
   }
 
-  // --- 페이지 로드 시 세션 불러오기 및 UI 초기화 ---
-  window.addEventListener('load', async () => {
-    loadSession();
-    updateUIByLoginStatus();
-    await loadPosts();
-  });
-</script>
+  // HTML 이스케이프
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
+  // 다크 모드 토글
+  function toggleDarkMode() {
+    if (body.classList.contains('light')) {
+      body.classList.replace('light', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      body.classList.replace('dark', 'light');
+      localStorage.setItem('theme', 'light');
+    }
+  }
+
+  // 초기 테마 적용
+  function applyTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      body.classList.replace('light', 'dark');
+    } else {
+      body.classList.replace('dark', 'light');
+    }
+  }
+
+  // 다크모드 토글 버튼 추가 (상단 오른쪽)
+  function addDarkModeToggle() {
+    const btn = document.createElement('button');
+    btn.textContent = '🌓';
+    btn.title = '다크모드 토글';
+    btn.style.position = 'fixed';
+    btn.style.top = '12px';
+    btn.style.right = '12px';
+    btn.style.background = 'none';
+    btn.style.border = 'none';
+    btn.style.fontSize = '1.5rem';
+    btn.style.cursor = 'pointer';
+    btn.style.zIndex = '120';
+    btn.style.color = 'var(--primary-color)';
+    btn.addEventListener('click', toggleDarkMode);
+    document.body.appendChild(btn);
+  }
+
+  // 시작
+  applyTheme();
+  addDarkModeToggle();
+  init();
+</script>
 </body>
 </html>
