@@ -8,7 +8,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
-const JWT_SECRET = 'your_jwt_secret_key_here'; // 꼭 바꾸세요!
+const JWT_SECRET = 'your_jwt_secret_key_here'; // 실제 환경에 맞게 변경하세요!
 
 app.use(cors());
 app.use(express.json());
@@ -56,14 +56,24 @@ let db;
   `);
 })();
 
+// 클라이언트 IP 추출 함수 (안전하게 다중 프록시 및 IPv6 대응)
 function getClientIP(req) {
-  return (
-    (req.headers['x-forwarded-for'] || '').split(',').shift().trim() ||
-    req.socket.remoteAddress ||
-    ''
-  );
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    const ips = forwarded.split(',');
+    return ips[0].trim();
+  }
+  // IPv6 localhost 대비
+  if (req.socket.remoteAddress) {
+    if (req.socket.remoteAddress.startsWith('::ffff:')) {
+      return req.socket.remoteAddress.substring(7);
+    }
+    return req.socket.remoteAddress;
+  }
+  return '';
 }
 
+// JWT 인증 미들웨어
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (!authHeader) return res.status(401).json({ message: '로그인 필요' });
@@ -86,10 +96,12 @@ app.post('/auth/register', async (req, res) => {
 
   const ip = getClientIP(req);
   try {
+    // IP당 1개 계정 제한
     const ipExists = await db.get('SELECT id FROM users WHERE ip = ?', ip);
     if (ipExists)
       return res.status(400).json({ message: 'IP당 1개 계정만 생성 가능합니다.' });
 
+    // 아이디 중복 체크
     const userExists = await db.get('SELECT id FROM users WHERE username = ?', username);
     if (userExists)
       return res.status(400).json({ message: '이미 존재하는 아이디입니다.' });
@@ -206,6 +218,10 @@ app.post('/posts/:id/comments', authenticateToken, async (req, res) => {
   if (!content) return res.status(400).json({ message: '댓글 내용을 입력하세요.' });
 
   try {
+    // 게시글 존재 확인(optional)
+    const post = await db.get('SELECT id FROM posts WHERE id = ?', postId);
+    if (!post) return res.status(404).json({ message: '게시글이 존재하지 않습니다.' });
+
     await db.run(
       'INSERT INTO comments (postId, userId, content) VALUES (?, ?, ?)',
       postId,
@@ -219,8 +235,8 @@ app.post('/posts/:id/comments', authenticateToken, async (req, res) => {
   }
 });
 
-// index.html 서빙 (정적파일 public 폴더 사용 중)
-// 기본적으로 express.static('public')으로 index.html 자동 서빙됩니다.
+// public 폴더에 index.html 및 정적 파일 위치
+// app.use(express.static(path.join(__dirname, 'public'))) 에서 자동 제공
 
 app.listen(PORT, () => {
   console.log(`서버 실행 중 http://localhost:${PORT}`);
