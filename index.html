@@ -5,40 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>체르 갤러리</title>
 <style>
+  /* 기본 리셋 및 모바일 최적화 */
   * {
     box-sizing: border-box;
   }
   body {
     max-width: 480px;
     margin: 0 auto;
-    padding: 24px 20px 60px;
+    padding: 16px 12px 60px;
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    background: #f0f2f7;
+    background: linear-gradient(135deg, #e0eaff, #f7f9ff);
     color: #222;
     min-height: 100vh;
-    position: relative;
     -webkit-tap-highlight-color: transparent;
   }
+
   header {
-    text-align: center;
-    margin-bottom: 28px;
     position: relative;
+    padding: 10px 0 24px;
+    text-align: center;
   }
   header h1 {
-    font-size: 2.2rem;
+    font-size: 2.4rem;
     font-weight: 900;
     color: #3366ff;
-    margin-bottom: 6px;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
+    margin: 0;
   }
   header p {
+    margin-top: 6px;
     font-size: 1rem;
-    color: #666;
+    color: #555;
   }
+
   #loginBtn, #logoutBtn {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 10px;
+    right: 12px;
     padding: 8px 16px;
     font-weight: 700;
     font-size: 1rem;
@@ -54,87 +57,72 @@
     background: #3366ff;
     color: white;
   }
+
   #topBar {
     display: flex;
-    gap: 12px;
-    margin-bottom: 26px;
+    gap: 10px;
+    margin-bottom: 24px;
   }
   #searchInput {
     flex-grow: 1;
-    max-width: 65%;
-    padding: 14px 18px;
+    padding: 12px 16px;
     border-radius: 14px;
-    border: 2px solid #d0d7e9;
+    border: 2px solid #a8b6ff;
     font-size: 1rem;
     font-weight: 600;
     background: white;
     color: #222;
-    transition: 0.3s;
+    transition: border-color 0.3s ease;
   }
   #searchInput:focus {
     border-color: #3366ff;
-    box-shadow: 0 0 8px rgba(51,102,255,0.3);
     outline: none;
   }
   #writePostBtn {
-    padding: 14px 28px;
+    padding: 12px 22px;
     background: linear-gradient(135deg, #3366ff, #254eda);
     color: #fff;
     border: none;
     border-radius: 14px;
-    font-weight: 800;
+    font-weight: 900;
     font-size: 1.1rem;
     cursor: pointer;
-    box-shadow: 0 8px 22px rgba(51,102,255,0.55);
     user-select: none;
     transition: background 0.3s ease;
     flex-shrink: 0;
-    max-width: 35%;
   }
   #writePostBtn:disabled {
     background: #a0a7e8;
     cursor: not-allowed;
-    box-shadow: none;
   }
   #writePostBtn:hover:not(:disabled) {
     background: linear-gradient(135deg, #254eda, #1e3bb3);
   }
-  #writePostBtn:active:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(51,102,255,0.7);
-  }
+
   #postsList {
-    background: #fff;
+    background: white;
     border-radius: 20px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.07);
-    padding: 20px 24px;
+    box-shadow: 0 10px 30px rgba(50, 80, 255, 0.12);
+    padding: 16px 20px;
     max-height: 65vh;
     overflow-y: auto;
   }
-  #postsList ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  #postsList li {
+  #postsList .post-item {
     padding: 16px 14px;
-    border-bottom: 1.3px solid #e6e9f8;
+    border-bottom: 1px solid #e4e9ff;
     cursor: pointer;
     border-radius: 14px;
-    transition: background-color 0.3s ease;
-    display: flex;
-    flex-direction: column;
+    transition: background-color 0.25s ease;
   }
-  #postsList li:last-child {
+  #postsList .post-item:last-child {
     border-bottom: none;
   }
-  #postsList li:hover,
-  #postsList li:focus {
-    background: #e8efff;
-    outline: none;
+  #postsList .post-item:hover {
+    background: #f0f4ff;
   }
   .post-title {
     font-weight: 800;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     color: #3366ff;
     margin-bottom: 6px;
     white-space: nowrap;
@@ -145,70 +133,85 @@
     font-weight: 600;
     font-size: 0.85rem;
     color: #7a8198;
-    white-space: nowrap;
   }
+
+  /* 모달 공통 */
   .modal {
+    display: none;
     position: fixed;
     inset: 0;
-    background: rgba(20,30,70,0.6);
-    backdrop-filter: blur(6px);
-    display: none;
+    background: rgba(20, 30, 70, 0.5);
+    backdrop-filter: blur(8px);
     justify-content: center;
     align-items: center;
-    padding: 20px 16px;
-    z-index: 1600;
+    padding: 20px;
+    z-index: 2000;
   }
   .modal.active {
     display: flex;
   }
   .modal-content {
-    background: #fff;
+    background: white;
     border-radius: 24px;
-    width: 100%;
     max-width: 480px;
-    max-height: 85vh;
-    padding: 32px 36px 36px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    width: 100%;
+    max-height: 90vh;
     overflow-y: auto;
-    position: relative;
+    padding: 28px 32px 36px;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.15);
     font-size: 1rem;
-    line-height: 1.5;
     font-weight: 600;
     display: flex;
     flex-direction: column;
   }
   .modal-content h2 {
     font-weight: 900;
-    font-size: 1.8rem;
+    font-size: 1.9rem;
     color: #3366ff;
-    margin-bottom: 26px;
+    margin: 0 0 24px 0;
+    text-align: center;
   }
-  .modal-content input[type="text"],
-  .modal-content input[type="password"],
-  .modal-content textarea {
+  .closeBtn {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #8c95b8;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.3s ease;
+  }
+  .closeBtn:hover {
+    color: #3366ff;
+  }
+
+  /* 입력 폼 */
+  input[type="text"],
+  input[type="password"],
+  textarea {
     width: 100%;
     padding: 14px 18px;
     border-radius: 18px;
     border: 2px solid #d4d9e8;
     font-size: 1rem;
     font-weight: 600;
-    resize: vertical;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
     font-family: 'Pretendard', sans-serif;
     margin-bottom: 18px;
-    background: white;
     color: #222;
+    resize: vertical;
+    transition: border-color 0.3s ease;
   }
-  .modal-content input[type="text"]:focus,
-  .modal-content input[type="password"]:focus,
-  .modal-content textarea:focus {
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  textarea:focus {
     border-color: #3366ff;
-    box-shadow: 0 0 12px rgba(51,102,255,0.5);
     outline: none;
   }
-  .modal-content button#submitPostBtn,
-  .modal-content button#submitLoginBtn,
-  .modal-content button#submitRegisterBtn {
+
+  button.submitBtn {
     background: linear-gradient(135deg, #3366ff, #254eda);
     border: none;
     border-radius: 20px;
@@ -217,115 +220,59 @@
     font-size: 1.3rem;
     color: white;
     cursor: pointer;
-    box-shadow: 0 10px 28px rgba(51,102,255,0.55);
+    box-shadow: 0 12px 30px rgba(51, 102, 255, 0.6);
     user-select: none;
     transition: background 0.3s ease;
     margin-top: auto;
   }
-  .modal-content button#submitPostBtn:hover,
-  .modal-content button#submitLoginBtn:hover,
-  .modal-content button#submitRegisterBtn:hover {
+  button.submitBtn:hover {
     background: linear-gradient(135deg, #254eda, #1e3bb3);
   }
-  .modal-content button#submitPostBtn:active,
-  .modal-content button#submitLoginBtn:active,
-  .modal-content button#submitRegisterBtn:active {
-    box-shadow: 0 5px 16px rgba(51,102,255,0.7);
+  button.submitBtn:active {
+    box-shadow: 0 6px 18px rgba(51, 102, 255, 0.7);
   }
-  .modal-content .closeBtn {
-    position: absolute;
-    top: 14px;
-    right: 18px;
-    font-size: 2.6rem;
-    background: transparent;
-    border: none;
-    color: #8c95b8;
-    font-weight: 700;
-    cursor: pointer;
-    transition: color 0.3s ease;
-    user-select: none;
-  }
-  .modal-content .closeBtn:hover {
-    color: #3366ff;
-  }
-  #postDetailContent {
-    white-space: pre-wrap;
-    color: #404556;
-    font-size: 1.15rem;
-    margin-bottom: 20px;
-  }
-  #commentForm {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-  #commentForm input[type="text"] {
-    flex: 1 1 45%;
-    padding: 14px 18px;
-    border-radius: 30px;
-    border: 2px solid #d5dbe8;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    background: white;
-    color: #222;
-  }
-  #commentForm input[type="text"]:focus {
-    border-color: #3366ff;
-    box-shadow: 0 0 12px rgba(51,102,255,0.35);
-    outline: none;
-  }
-  #commentForm button {
-    flex: 1 1 100%;
-    background: linear-gradient(135deg, #3366ff, #254eda);
-    color: white;
-    font-weight: 900;
-    font-size: 1.1rem;
-    border: none;
-    border-radius: 30px;
-    padding: 16px 0;
-    cursor: pointer;
-    box-shadow: 0 10px 28px rgba(51,102,255,0.55);
-    user-select: none;
-    transition: background 0.3s ease;
-  }
-  #commentForm button:hover {
-    background: linear-gradient(135deg, #254eda, #1e3bb3);
-  }
-  #commentForm button:active {
-    box-shadow: 0 5px 16px rgba(51,102,255,0.7);
-  }
+
+  /* 댓글 영역 */
   #commentsList {
     max-height: 320px;
     overflow-y: auto;
-    background: #f8fbff;
+    background: #f4f8ff;
     border: 2px solid #d5dbed;
     border-radius: 20px;
-    padding: 14px 22px;
+    padding: 14px 20px;
     color: #3c475b;
     font-weight: 600;
     font-size: 1rem;
+    margin-bottom: 16px;
   }
   .comment-item {
-    padding: 10px 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid #d9e0f5;
-    outline: none;
     position: relative;
+    outline: none;
   }
   .comment-item:last-child {
     border-bottom: none;
   }
   .comment-author {
     font-weight: 700;
-    margin-bottom: 4px;
     color: #3366ff;
+    margin-bottom: 4px;
   }
-  /* 로그인, 회원가입 모달 탭 UI */
+  .comment-text {
+    white-space: pre-wrap;
+  }
+  .comment-date {
+    font-size: 0.75rem;
+    color: #7a8198;
+    margin-top: 4px;
+  }
+
+  /* 로그인/회원가입 탭 */
   #authTabs {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 18px;
     margin-bottom: 18px;
   }
   #authTabs button {
@@ -333,7 +280,7 @@
     border: none;
     font-weight: 700;
     font-size: 1.2rem;
-    padding: 6px 12px;
+    padding: 8px 12px;
     cursor: pointer;
     color: #666;
     border-bottom: 3px solid transparent;
@@ -346,19 +293,20 @@
 </style>
 </head>
 <body>
+
 <header>
   <h1>체르 갤러리</h1>
   <p>MADE BY JAMYUN</p>
   <button id="loginBtn" aria-label="로그인 버튼">로그인</button>
   <button id="logoutBtn" aria-label="로그아웃 버튼" style="display:none;">로그아웃</button>
 </header>
+
 <div id="topBar">
   <input type="text" id="searchInput" placeholder="제목으로 검색" aria-label="게시물 제목 검색" />
   <button id="writePostBtn" aria-label="게시글 작성하기" disabled>글쓰기</button>
 </div>
-<section id="postsList" aria-label="게시글 목록">
-  <ul tabindex="0"></ul>
-</section>
+
+<section id="postsList" aria-label="게시글 목록"></section>
 
 <!-- 로그인/회원가입 모달 -->
 <div class="modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" tabindex="-1">
@@ -370,15 +318,15 @@
       <button id="registerTab" type="button">회원가입</button>
     </div>
     <form id="loginForm" style="display:flex; flex-direction: column;">
-      <input type="text" id="loginId" placeholder="아이디" required aria-label="아이디 입력" autocomplete="username" />
-      <input type="password" id="loginPassword" placeholder="비밀번호" required aria-label="비밀번호 입력" autocomplete="current-password" />
-      <button id="submitLoginBtn" type="submit">로그인</button>
+      <input type="text" id="loginId" placeholder="아이디" required autocomplete="username" />
+      <input type="password" id="loginPassword" placeholder="비밀번호" required autocomplete="current-password" />
+      <button id="submitLoginBtn" class="submitBtn" type="submit">로그인</button>
     </form>
     <form id="registerForm" style="display:none; flex-direction: column;">
-      <input type="text" id="registerId" placeholder="아이디" required aria-label="회원가입 아이디 입력" autocomplete="username" />
-      <input type="password" id="registerPassword" placeholder="비밀번호" required aria-label="회원가입 비밀번호 입력" autocomplete="new-password" />
-      <input type="text" id="registerNickname" placeholder="닉네임" required aria-label="회원가입 닉네임 입력" />
-      <button id="submitRegisterBtn" type="submit">회원가입</button>
+      <input type="text" id="registerId" placeholder="아이디" required autocomplete="username" />
+      <input type="password" id="registerPassword" placeholder="비밀번호" required autocomplete="new-password" />
+      <input type="text" id="registerNickname" placeholder="닉네임" required />
+      <button id="submitRegisterBtn" class="submitBtn" type="submit">회원가입</button>
     </form>
   </div>
 </div>
@@ -390,7 +338,7 @@
     <h2 id="postModalTitle">게시글 작성</h2>
     <input type="text" id="postTitle" placeholder="제목을 입력하세요" aria-label="게시글 제목 입력" />
     <textarea id="postContent" rows="6" placeholder="내용을 입력하세요" aria-label="게시글 내용 입력"></textarea>
-    <button id="submitPostBtn">작성 완료</button>
+    <button id="submitPostBtn" class="submitBtn">작성 완료</button>
   </div>
 </div>
 
@@ -399,36 +347,28 @@
   <div class="modal-content">
     <button class="closeBtn" title="닫기" aria-label="닫기">&times;</button>
     <h2 id="postDetailTitle"></h2>
-    <div id="postDetailContent"></div>
-
-    <form id="commentForm" aria-label="댓글 작성 폼">
-      <input type="text" id="commentAuthor" placeholder="이름" readonly aria-label="댓글 작성자 이름" />
-      <input type="text" id="commentText" placeholder="댓글을 입력하세요" required aria-required="true" aria-label="댓글 내용 입력" />
-      <button type="submit">댓글 작성</button>
-    </form>
+    <div id="postDetailContent" style="white-space: pre-wrap; margin-bottom: 16px; font-size:1.1rem; color:#404556;"></div>
+    <small id="postDetailMeta" style="display:block; margin-bottom: 20px; color:#7a8198;"></small>
 
     <section id="commentsList" aria-live="polite" aria-label="댓글 목록"></section>
+
+    <form id="commentForm" aria-label="댓글 작성 폼" style="display:flex; gap:12px; flex-wrap: wrap;">
+      <input type="text" id="commentAuthor" placeholder="이름" readonly style="flex: 1 1 35%; border-radius: 30px; padding: 14px 18px; border: 2px solid #d5dbe8; font-weight: 600; font-size: 1rem; background:#eee; color:#666;" />
+      <input type="text" id="commentText" placeholder="댓글을 입력하세요" required aria-required="true" aria-label="댓글 내용 입력" style="flex: 1 1 60%; border-radius: 30px; padding: 14px 18px; border: 2px solid #d5dbe8; font-weight: 600; font-size: 1rem;" />
+      <button type="submit" style="flex: 1 1 100%; background: linear-gradient(135deg, #3366ff, #254eda); color: white; font-weight: 900; font-size: 1.1rem; border: none; border-radius: 30px; padding: 16px 0; cursor: pointer; box-shadow: 0 10px 28px rgba(51,102,255,0.55); user-select: none; transition: background 0.3s ease;">댓글 작성</button>
+    </form>
   </div>
 </div>
 
 <script>
-  // 서버 주소 (필요시 변경)
-  const SERVER_URL = 'http://localhost:3000';
+  // 서버 주소 (필요시 변경하세요)
+  const SERVER_URL = 'https://foxbox.r-e.kr';
 
-  // 요소
-  const postsListEl = document.querySelector('#postsList ul');
+  // 요소들
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
   const writePostBtn = document.getElementById('writePostBtn');
-  const postModal = document.getElementById('postModal');
-  const postDetailModal = document.getElementById('postDetailModal');
-  const postTitleInput = document.getElementById('postTitle');
-  const postContentInput = document.getElementById('postContent');
-  const submitPostBtn = document.getElementById('submitPostBtn');
-  const postDetailTitle = document.getElementById('postDetailTitle');
-  const postDetailContent = document.getElementById('postDetailContent');
-  const commentForm = document.getElementById('commentForm');
-  const commentAuthorInput = document.getElementById('commentAuthor');
-  const commentTextInput = document.getElementById('commentText');
-  const commentsList = document.getElementById('commentsList');
+  const postsListEl = document.getElementById('postsList');
   const searchInput = document.getElementById('searchInput');
 
   const authModal = document.getElementById('authModal');
@@ -436,20 +376,33 @@
   const registerForm = document.getElementById('registerForm');
   const loginTab = document.getElementById('loginTab');
   const registerTab = document.getElementById('registerTab');
-  const loginBtn = document.getElementById('loginBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
   const submitLoginBtn = document.getElementById('submitLoginBtn');
   const submitRegisterBtn = document.getElementById('submitRegisterBtn');
   const authModalCloseBtn = authModal.querySelector('.closeBtn');
+
+  const postModal = document.getElementById('postModal');
   const postModalCloseBtn = postModal.querySelector('.closeBtn');
+  const postTitleInput = document.getElementById('postTitle');
+  const postContentInput = document.getElementById('postContent');
+  const submitPostBtn = document.getElementById('submitPostBtn');
+
+  const postDetailModal = document.getElementById('postDetailModal');
   const postDetailModalCloseBtn = postDetailModal.querySelector('.closeBtn');
+  const postDetailTitle = document.getElementById('postDetailTitle');
+  const postDetailContent = document.getElementById('postDetailContent');
+  const postDetailMeta = document.getElementById('postDetailMeta');
+
+  const commentForm = document.getElementById('commentForm');
+  const commentAuthorInput = document.getElementById('commentAuthor');
+  const commentTextInput = document.getElementById('commentText');
+  const commentsList = document.getElementById('commentsList');
 
   let posts = [];
   let selectedPost = null;
-  let token = null; // JWT 토큰 저장용
-  let nickname = ''; // 로그인 닉네임 저장용
+  let token = null;
+  let nickname = '';
 
-  // 토큰 저장/불러오기 (localStorage)
+  // JWT 토큰 저장/불러오기
   function saveToken(t) {
     localStorage.setItem('jwtToken', t);
   }
@@ -460,7 +413,7 @@
     localStorage.removeItem('jwtToken');
   }
 
-  // 토큰에서 닉네임 추출 (payload decode)
+  // 토큰에서 닉네임 추출
   function parseJwt(token) {
     try {
       const base64Url = token.split('.')[1];
@@ -477,7 +430,7 @@
     }
   }
 
-  // 로그인 상태 UI 변경
+  // 로그인 상태 UI 업데이트
   function updateAuthUI() {
     if (token) {
       loginBtn.style.display = 'none';
@@ -492,173 +445,234 @@
     }
   }
 
-  // 모달 열기
+  // 모달 열기/닫기 함수
   function openModal(modal) {
     modal.classList.add('active');
     modal.setAttribute('tabindex', '-1');
     modal.focus();
+    document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
   }
-  // 모달 닫기
   function closeModal(modal) {
     modal.classList.remove('active');
-    if (modal === authModal) {
-      loginForm.reset();
-      registerForm.reset();
-      showLoginForm();
-    }
-    if (modal === postModal) {
-      postTitleInput.value = '';
-      postContentInput.value = '';
-    }
-    if (modal === postDetailModal) {
-      selectedPost = null;
-      commentsList.innerHTML = '';
-      commentTextInput.value = '';
-    }
+    document.body.style.overflow = '';
   }
 
-  // 로그인 폼 보이기
-  function showLoginForm() {
-    loginForm.style.display = 'flex';
-    registerForm.style.display = 'none';
-    loginTab.classList.add('active');
-    registerTab.classList.remove('active');
-  }
-
-  // 회원가입 폼 보이기
-  function showRegisterForm() {
-    loginForm.style.display = 'none';
-    registerForm.style.display = 'flex';
-    loginTab.classList.remove('active');
-    registerTab.classList.add('active');
-  }
-
-  // 게시글 리스트 렌더링
-  function renderPosts() {
-    const filterText = searchInput.value.trim().toLowerCase();
+  // 게시글 목록 렌더링
+  function renderPosts(filter = '') {
+    const filtered = posts.filter(post => post.title.toLowerCase().includes(filter.toLowerCase()));
     postsListEl.innerHTML = '';
-
-    const filteredPosts = posts.filter(post =>
-      post.title.toLowerCase().includes(filterText)
-    );
-
-    if (filteredPosts.length === 0) {
-      postsListEl.innerHTML = '<li>검색 결과가 없습니다.</li>';
+    if (filtered.length === 0) {
+      postsListEl.innerHTML = `<p style="text-align:center; color:#999; margin-top:20px;">게시물이 없습니다.</p>`;
       return;
     }
-
-    filteredPosts.forEach(post => {
-      const li = document.createElement('li');
-      li.tabIndex = 0;
-      li.setAttribute('role', 'button');
-      li.setAttribute('aria-pressed', 'false');
-      li.className = 'post-item';
-
-      const titleDiv = document.createElement('div');
-      titleDiv.className = 'post-title';
-      titleDiv.textContent = post.title;
-
-      const metaDiv = document.createElement('div');
-      metaDiv.className = 'post-meta';
-      const date = new Date(post.createdAt);
-      metaDiv.textContent = `${post.author} · ${date.toLocaleString()}`;
-
-      li.appendChild(titleDiv);
-      li.appendChild(metaDiv);
-
-      li.addEventListener('click', () => openPostDetail(post.id));
-      li.addEventListener('keydown', e => {
+    filtered.forEach(post => {
+      const div = document.createElement('div');
+      div.className = 'post-item';
+      div.tabIndex = 0;
+      div.setAttribute('role', 'button');
+      div.setAttribute('aria-label', `게시글 제목: ${post.title}`);
+      div.innerHTML = `
+        <div class="post-title">${post.title}</div>
+        <div class="post-meta">작성자: ${post.nickname} | 작성일: ${new Date(post.createdAt).toLocaleString()}</div>
+      `;
+      div.addEventListener('click', () => openPostDetail(post.id));
+      div.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           openPostDetail(post.id);
         }
       });
-
-      postsListEl.appendChild(li);
+      postsListEl.appendChild(div);
     });
   }
 
-  // 게시글 불러오기
-  async function fetchPosts() {
-    try {
-      const res = await fetch(`${SERVER_URL}/posts`);
-      if (!res.ok) throw new Error('게시글을 불러오는데 실패했습니다.');
-      posts = await res.json();
-      renderPosts();
-    } catch (error) {
-      alert(error.message);
-    }
-  }
-
-  // 게시글 상세보기 열기
+  // 게시글 상세 보기
   async function openPostDetail(postId) {
     try {
       const res = await fetch(`${SERVER_URL}/posts/${postId}`);
-      if (!res.ok) throw new Error('게시글을 불러오는데 실패했습니다.');
-      const post = await res.json();
-      selectedPost = post;
-
-      postDetailTitle.textContent = post.title;
-      postDetailContent.textContent = post.content;
-
-      // 댓글 불러오기
-      await fetchComments(postId);
-
-      // 댓글 작성자 이름 자동 입력
-      commentAuthorInput.value = nickname || '';
-
+      if (!res.ok) throw new Error('게시글을 불러올 수 없습니다.');
+      selectedPost = await res.json();
+      postDetailTitle.textContent = selectedPost.title;
+      postDetailContent.textContent = selectedPost.content;
+      postDetailMeta.textContent = `작성자: ${selectedPost.nickname} | 작성일: ${new Date(selectedPost.createdAt).toLocaleString()}`;
+      renderComments(selectedPost.comments || []);
+      commentTextInput.value = '';
       openModal(postDetailModal);
-    } catch (error) {
-      alert(error.message);
-    }
-  }
-
-  // 댓글 불러오기
-  async function fetchComments(postId) {
-    try {
-      const res = await fetch(`${SERVER_URL}/posts/${postId}/comments`);
-      if (!res.ok) throw new Error('댓글을 불러오는데 실패했습니다.');
-      const comments = await res.json();
-      renderComments(comments);
-    } catch (error) {
-      alert(error.message);
+    } catch (err) {
+      alert(err.message);
     }
   }
 
   // 댓글 렌더링
   function renderComments(comments) {
     commentsList.innerHTML = '';
-    if (comments.length === 0) {
-      commentsList.textContent = '댓글이 없습니다.';
+    if (!comments.length) {
+      commentsList.innerHTML = `<p style="text-align:center; color:#999;">댓글이 없습니다.</p>`;
       return;
     }
-    comments.forEach(comment => {
+    comments.forEach(c => {
       const div = document.createElement('div');
       div.className = 'comment-item';
       div.tabIndex = 0;
-
-      const author = document.createElement('div');
-      author.className = 'comment-author';
-      author.textContent = comment.author;
-
-      const text = document.createElement('div');
-      text.textContent = comment.content;
-
-      div.appendChild(author);
-      div.appendChild(text);
+      div.innerHTML = `
+        <div class="comment-author">${c.nickname}</div>
+        <div class="comment-text">${c.content}</div>
+        <div class="comment-date">${new Date(c.createdAt).toLocaleString()}</div>
+      `;
       commentsList.appendChild(div);
     });
   }
 
-  // 댓글 작성 핸들러
-  commentForm.addEventListener('submit', async e => {
+  // 게시글 불러오기
+  async function loadPosts() {
+    try {
+      const res = await fetch(`${SERVER_URL}/posts`);
+      if (!res.ok) throw new Error('게시글 목록을 불러올 수 없습니다.');
+      posts = await res.json();
+      renderPosts(searchInput.value);
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  // 로그인 처리
+  loginForm.addEventListener('submit', async e => {
     e.preventDefault();
-    if (!token) {
-      alert('로그인이 필요합니다.');
+    const id = document.getElementById('loginId').value.trim();
+    const pw = document.getElementById('loginPassword').value.trim();
+    if (!id || !pw) {
+      alert('아이디와 비밀번호를 입력해주세요.');
       return;
     }
-    if (!commentTextInput.value.trim()) {
+    try {
+      const res = await fetch(`${SERVER_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, password: pw }),
+      });
+      if (!res.ok) throw new Error('로그인 실패: 아이디 또는 비밀번호가 틀립니다.');
+      const data = await res.json();
+      token = data.token;
+      saveToken(token);
+      const payload = parseJwt(token);
+      nickname = payload?.nickname || '';
+      updateAuthUI();
+      closeModal(authModal);
+      loginForm.reset();
+      registerForm.reset();
+      await loadPosts();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  // 회원가입 처리
+  registerForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const id = document.getElementById('registerId').value.trim();
+    const pw = document.getElementById('registerPassword').value.trim();
+    const nick = document.getElementById('registerNickname').value.trim();
+    if (!id || !pw || !nick) {
+      alert('모든 항목을 입력해주세요.');
+      return;
+    }
+    try {
+      const res = await fetch(`${SERVER_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, password: pw, nickname: nick }),
+      });
+      if (!res.ok) throw new Error('회원가입 실패: 이미 존재하는 아이디일 수 있습니다.');
+      alert('회원가입이 완료되었습니다. 로그인해 주세요.');
+      loginTab.click();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  // 탭 전환
+  loginTab.addEventListener('click', () => {
+    loginTab.classList.add('active');
+    registerTab.classList.remove('active');
+    loginForm.style.display = 'flex';
+    registerForm.style.display = 'none';
+    authModal.querySelector('h2').textContent = '로그인';
+  });
+  registerTab.addEventListener('click', () => {
+    registerTab.classList.add('active');
+    loginTab.classList.remove('active');
+    registerForm.style.display = 'flex';
+    loginForm.style.display = 'none';
+    authModal.querySelector('h2').textContent = '회원가입';
+  });
+
+  // 로그아웃 처리
+  logoutBtn.addEventListener('click', () => {
+    token = null;
+    nickname = '';
+    clearToken();
+    updateAuthUI();
+    loadPosts();
+  });
+
+  // 로그인 모달 열기
+  loginBtn.addEventListener('click', () => {
+    loginTab.click();
+    openModal(authModal);
+  });
+  authModalCloseBtn.addEventListener('click', () => closeModal(authModal));
+
+  // 글쓰기 모달 열기
+  writePostBtn.addEventListener('click', () => {
+    postTitleInput.value = '';
+    postContentInput.value = '';
+    openModal(postModal);
+  });
+  postModalCloseBtn.addEventListener('click', () => closeModal(postModal));
+
+  // 글쓰기 제출
+  submitPostBtn.addEventListener('click', async () => {
+    const title = postTitleInput.value.trim();
+    const content = postContentInput.value.trim();
+    if (!title || !content) {
+      alert('제목과 내용을 모두 입력해주세요.');
+      return;
+    }
+    if (!token) {
+      alert('로그인 후 작성할 수 있습니다.');
+      closeModal(postModal);
+      openModal(authModal);
+      return;
+    }
+    try {
+      const res = await fetch(`${SERVER_URL}/posts`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, content }),
+      });
+      if (!res.ok) throw new Error('게시글 작성 실패');
+      await loadPosts();
+      closeModal(postModal);
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  // 댓글 작성
+  commentForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const comment = commentTextInput.value.trim();
+    if (!comment) {
       alert('댓글 내용을 입력하세요.');
+      return;
+    }
+    if (!token) {
+      alert('로그인 후 댓글 작성이 가능합니다.');
+      closeModal(postDetailModal);
+      openModal(authModal);
       return;
     }
     try {
@@ -666,170 +680,28 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          author: nickname,
-          content: commentTextInput.value.trim()
-        })
+        body: JSON.stringify({ content: comment }),
       });
-      if (!res.ok) throw new Error('댓글 작성에 실패했습니다.');
+      if (!res.ok) throw new Error('댓글 작성 실패');
       commentTextInput.value = '';
-      await fetchComments(selectedPost.id);
-    } catch (error) {
-      alert(error.message);
+      // 최신 댓글 다시 불러오기
+      openPostDetail(selectedPost.id);
+    } catch (err) {
+      alert(err.message);
     }
-  });
-
-  // 글쓰기 버튼 클릭
-  writePostBtn.addEventListener('click', () => {
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      return;
-    }
-    openModal(postModal);
-  });
-
-  // 글쓰기 모달 닫기
-  postModalCloseBtn.addEventListener('click', () => {
-    closeModal(postModal);
-  });
-
-  // 게시글 작성 제출
-  submitPostBtn.addEventListener('click', async () => {
-    const title = postTitleInput.value.trim();
-    const content = postContentInput.value.trim();
-    if (!title) {
-      alert('제목을 입력하세요.');
-      return;
-    }
-    if (!content) {
-      alert('내용을 입력하세요.');
-      return;
-    }
-    try {
-      const res = await fetch(`${SERVER_URL}/posts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ title, content })
-      });
-      if (!res.ok) throw new Error('게시글 작성에 실패했습니다.');
-      await fetchPosts();
-      closeModal(postModal);
-    } catch (error) {
-      alert(error.message);
-    }
-  });
-
-  // 로그인/회원가입 모달 닫기
-  authModalCloseBtn.addEventListener('click', () => {
-    closeModal(authModal);
   });
 
   // 게시글 상세 모달 닫기
-  postDetailModalCloseBtn.addEventListener('click', () => {
-    closeModal(postDetailModal);
-  });
+  postDetailModalCloseBtn.addEventListener('click', () => closeModal(postDetailModal));
 
-  // 로그인 버튼 클릭
-  loginBtn.addEventListener('click', () => {
-    openModal(authModal);
-    showLoginForm();
-  });
-
-  // 로그아웃 버튼 클릭
-  logoutBtn.addEventListener('click', () => {
-    token = null;
-    nickname = '';
-    clearToken();
-    updateAuthUI();
-    alert('로그아웃 되었습니다.');
-  });
-
-  // 로그인 탭 클릭
-  loginTab.addEventListener('click', showLoginForm);
-  // 회원가입 탭 클릭
-  registerTab.addEventListener('click', showRegisterForm);
-
-  // 로그인 폼 제출
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const id = document.getElementById('loginId').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    if (!id || !password) {
-      alert('아이디와 비밀번호를 입력하세요.');
-      return;
-    }
-    try {
-      const res = await fetch(`${SERVER_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, password })
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || '로그인 실패');
-      }
-      const data = await res.json();
-      token = data.token;
-      saveToken(token);
-      const payload = parseJwt(token);
-      nickname = payload ? payload.nickname : '';
-      updateAuthUI();
-      closeModal(authModal);
-      alert('로그인 성공');
-    } catch (error) {
-      alert(error.message);
-    }
-  });
-
-  // 회원가입 폼 제출
-  registerForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const id = document.getElementById('registerId').value.trim();
-    const password = document.getElementById('registerPassword').value.trim();
-    const nick = document.getElementById('registerNickname').value.trim();
-    if (!id || !password || !nick) {
-      alert('모든 정보를 입력하세요.');
-      return;
-    }
-    try {
-      const res = await fetch(`${SERVER_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, password, nickname: nick })
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || '회원가입 실패');
-      }
-      alert('회원가입 성공! 로그인 해주세요.');
-      showLoginForm();
-    } catch (error) {
-      alert(error.message);
-    }
-  });
-
-  // 검색어 입력시 렌더링
+  // 검색 기능
   searchInput.addEventListener('input', () => {
-    renderPosts();
+    renderPosts(searchInput.value);
   });
 
-  // 초기 실행
-  (function init() {
-    token = loadToken();
-    if (token) {
-      const payload = parseJwt(token);
-      nickname = payload ? payload.nickname : '';
-    }
-    updateAuthUI();
-    fetchPosts();
-  })();
-
-  // ESC 키로 모달 닫기
+  // 키보드 ESC로 모달 닫기
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (authModal.classList.contains('active')) closeModal(authModal);
@@ -838,6 +710,18 @@
     }
   });
 
+  // 초기화 - 토큰 복원 및 게시글 로드
+  (async function init() {
+    token = loadToken();
+    if (token) {
+      const payload = parseJwt(token);
+      nickname = payload?.nickname || '';
+    }
+    updateAuthUI();
+    await loadPosts();
+  })();
+
 </script>
+
 </body>
 </html>
