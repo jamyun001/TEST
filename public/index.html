@@ -135,6 +135,15 @@
   #sideMenu.open {
     left: 0;
   }
+  #sideMenu .closeBtn {
+    background: transparent;
+    border: none;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
   #sideMenu ul {
     list-style: none;
     padding: 0;
@@ -435,6 +444,94 @@
   #toggleThemeBtn:hover {
     background: var(--btn-hover-bg);
   }
+
+  /* 로그인/회원가입 모달 공통 */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-content {
+    background: var(--modal-bg);
+    border-radius: 12px;
+    padding: 24px 30px;
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+    box-shadow: 0 8px 16px rgb(0 0 0 / 0.2);
+    position: relative;
+  }
+  .modal-content h2 {
+    margin-top: 0;
+    font-weight: 700;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .modal-content input {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+    outline-offset: 2px;
+    box-sizing: border-box;
+  }
+  .modal-content button {
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-radius: 8px;
+    background: var(--btn-bg);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .modal-content button:hover {
+    background: var(--btn-hover-bg);
+  }
+  .modal-content .switch-auth {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+  .modal-content .switch-auth a {
+    cursor: pointer;
+    color: var(--primary-color);
+    text-decoration: underline;
+  }
+  .modal-content .close-modal-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--primary-color);
+  }
+  .errorMsg {
+    color: #e53e3e;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    text-align: center;
+  }
 </style>
 </head>
 <body class="light">
@@ -451,6 +548,7 @@
 
 <!-- 사이드 메뉴 -->
 <nav id="sideMenu" aria-hidden="true" tabindex="-1">
+  <button class="closeBtn" aria-label="메뉴 닫기">&times;</button>
   <ul>
     <li><button>임시 버튼1</button></li>
     <li><button>임시 버튼2</button></li>
@@ -476,215 +574,456 @@
   <ul id="postList" aria-live="polite" aria-relevant="additions"></ul>
 
   <!-- 게시글 상세 -->
-  <article id="postDetail" tabindex="-1" aria-label="게시글 상세 보기">
-    <button id="backToListBtn">&lt; 목록으로</button>
-    <h3 id="postTitle"></h3>
-    <div class="post-meta">작성자: <span id="postAuthor"></span> | 작성일: <span id="postDate"></span></div>
+  <section id="postDetail" aria-live="polite" aria-atomic="true">
+    <button id="backToListBtn" aria-label="게시글 목록으로 돌아가기">&larr; 목록</button>
+    <h3 id="postDetailTitle"></h3>
+    <div class="post-meta" id="postDetailMeta"></div>
     <div id="postContent"></div>
 
     <!-- 댓글 섹션 -->
-    <section id="commentsSection" aria-label="댓글 섹션">
+    <section id="commentsSection" aria-label="댓글 목록">
       <h4>댓글</h4>
       <ul id="commentsList"></ul>
-      <form id="commentForm">
-        <input id="commentInput" placeholder="댓글 작성..." autocomplete="off" aria-label="댓글 내용 입력" />
-        <button id="commentSubmitBtn" type="submit">등록</button>
+
+      <!-- 댓글 작성 폼 -->
+      <form id="commentForm" aria-label="댓글 작성 폼">
+        <input type="text" id="commentInput" placeholder="댓글을 입력하세요." aria-label="댓글 입력" required />
+        <button type="submit" id="commentSubmitBtn">작성</button>
       </form>
     </section>
-  </article>
+  </section>
 
-  <!-- 게시글 작성 -->
-  <section id="writePostSection" aria-label="게시글 작성" style="display:none;">
-    <input type="text" id="newPostTitle" placeholder="제목" aria-label="새 게시물 제목" />
-    <textarea id="newPostContent" placeholder="내용" aria-label="새 게시물 내용"></textarea>
-    <select id="newPostCategory" aria-label="카테고리 선택">
+  <!-- 새 글 작성 섹션 -->
+  <section id="writePostSection" aria-label="새 게시글 작성">
+    <h3>새 게시글 작성</h3>
+    <input type="text" id="writePostTitle" placeholder="제목" aria-label="제목 입력" required />
+    <select id="writePostCategory" aria-label="카테고리 선택" required>
+      <option value="">카테고리 선택</option>
       <option value="자유">자유</option>
       <option value="공지">공지</option>
       <option value="질문">질문</option>
     </select>
+    <textarea id="writePostContent" placeholder="내용을 입력하세요." aria-label="내용 입력" required></textarea>
     <div class="btn-group">
-      <button id="submitPostBtn">글 작성</button>
-      <button id="cancelPostBtn" class="cancel-btn">취소</button>
+      <button id="submitPostBtn">작성</button>
+      <button id="cancelPostBtn" type="button">취소</button>
     </div>
   </section>
 </main>
 
-<!-- 새 글 작성 버튼 -->
-<button id="showWritePostBtn" title="새 글 작성">글쓰기 ✍️</button>
+<button id="showWritePostBtn" aria-haspopup="true" aria-controls="writePostSection" aria-expanded="false">글쓰기</button>
+<button id="toggleThemeBtn" aria-pressed="false" aria-label="라이트/다크 모드 전환">🌙</button>
 
-<!-- 라이트/다크 모드 토글 -->
-<button id="toggleThemeBtn" title="라이트 / 다크 모드 전환">🌙</button>
+<!-- 로그인/회원가입 모달 -->
+<div id="authModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" tabindex="-1" aria-hidden="true">
+  <div class="modal-content">
+    <button class="close-modal-btn" aria-label="모달 닫기">&times;</button>
+    <h2 id="authModalTitle">로그인</h2>
+    <form id="loginForm">
+      <input type="text" id="loginUsername" placeholder="아이디" aria-label="아이디 입력" required />
+      <input type="password" id="loginPassword" placeholder="비밀번호" aria-label="비밀번호 입력" required />
+      <button type="submit">로그인</button>
+    </form>
+    <div class="switch-auth">
+      계정이 없으신가요? <a href="#" id="showSignupLink">회원가입</a>
+    </div>
+
+    <form id="signupForm" style="display:none;">
+      <input type="text" id="signupUsername" placeholder="아이디" aria-label="아이디 입력" required />
+      <input type="password" id="signupPassword" placeholder="비밀번호" aria-label="비밀번호 입력" required />
+      <input type="password" id="signupPasswordConfirm" placeholder="비밀번호 확인" aria-label="비밀번호 확인 입력" required />
+      <button type="submit">회원가입</button>
+    </form>
+    <div class="switch-auth" style="display:none;">
+      이미 계정이 있으신가요? <a href="#" id="showLoginLink">로그인</a>
+    </div>
+  </div>
+</div>
 
 <script>
-  const SERVER_URL = 'http://foxbox.r-e.kr';
+  // 상태 관리용 데이터 예시 (실제 서버 연동 필요)
+  let posts = [
+    {
+      id: 1,
+      title: "첫 게시글입니다",
+      category: "공지",
+      content: "체르 갤러리에 오신 걸 환영합니다!",
+      createdAt: "2025-08-01 10:00",
+      comments: [
+        { author: "관리자", content: "환영합니다!", createdAt: "2025-08-01 10:10" }
+      ]
+    },
+    {
+      id: 2,
+      title: "자유게시판 첫 글",
+      category: "자유",
+      content: "자유롭게 글을 남겨주세요.",
+      createdAt: "2025-08-01 11:00",
+      comments: []
+    }
+  ];
 
-  // DOM 요소
+  let currentUser = null; // 로그인 상태
+  let currentPostId = null;
+
+  // DOM 참조
   const body = document.body;
-  const toggleThemeBtn = document.getElementById('toggleThemeBtn');
-
   const burgerMenuBtn = document.getElementById('burgerMenuBtn');
   const sideMenu = document.getElementById('sideMenu');
-
+  const sideMenuCloseBtn = sideMenu.querySelector('.closeBtn');
   const loginBtn = document.getElementById('loginBtn');
   const logoutBtn = document.getElementById('logoutBtn');
-
+  const authModal = document.getElementById('authModal');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const showSignupLink = document.getElementById('showSignupLink');
+  const showLoginLink = document.getElementById('showLoginLink');
+  const authModalTitle = document.getElementById('authModalTitle');
+  const closeModalBtn = authModal.querySelector('.close-modal-btn');
   const searchInput = document.getElementById('searchInput');
   const searchBtn = document.getElementById('searchBtn');
   const categorySelect = document.getElementById('categorySelect');
-
   const postList = document.getElementById('postList');
   const postDetail = document.getElementById('postDetail');
-  const postTitle = document.getElementById('postTitle');
-  const postAuthor = document.getElementById('postAuthor');
-  const postDate = document.getElementById('postDate');
+  const postDetailTitle = document.getElementById('postDetailTitle');
+  const postDetailMeta = document.getElementById('postDetailMeta');
   const postContent = document.getElementById('postContent');
   const backToListBtn = document.getElementById('backToListBtn');
-const commentsList = document.getElementById('commentsList');
-const commentForm = document.getElementById('commentForm');
-const commentInput = document.getElementById('commentInput');
+  const commentsList = document.getElementById('commentsList');
+  const commentForm = document.getElementById('commentForm');
+  const commentInput = document.getElementById('commentInput');
+  const writePostSection = document.getElementById('writePostSection');
+  const showWritePostBtn = document.getElementById('showWritePostBtn');
+  const submitPostBtn = document.getElementById('submitPostBtn');
+  const cancelPostBtn = document.getElementById('cancelPostBtn');
+  const writePostTitle = document.getElementById('writePostTitle');
+  const writePostCategory = document.getElementById('writePostCategory');
+  const writePostContent = document.getElementById('writePostContent');
+  const toggleThemeBtn = document.getElementById('toggleThemeBtn');
 
-const writePostSection = document.getElementById('writePostSection');
-const showWritePostBtn = document.getElementById('showWritePostBtn');
-const newPostTitle = document.getElementById('newPostTitle');
-const newPostContent = document.getElementById('newPostContent');
-const newPostCategory = document.getElementById('newPostCategory');
-const submitPostBtn = document.getElementById('submitPostBtn');
-const cancelPostBtn = document.getElementById('cancelPostBtn');
-
-// 라이트/다크 모드 전환
-toggleThemeBtn.addEventListener('click', () => {
-  body.classList.toggle('dark');
-  body.classList.toggle('light');
-  toggleThemeBtn.textContent = body.classList.contains('dark') ? '☀️' : '🌙';
-});
-
-// 사이드 메뉴 토글
-burgerMenuBtn.addEventListener('click', () => {
-  sideMenu.classList.toggle('open');
-});
-
-// 더미 로그인/로그아웃
-let isLoggedIn = false;
-function updateAuthUI() {
-  loginBtn.style.display = isLoggedIn ? 'none' : 'inline-block';
-  logoutBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
-  showWritePostBtn.style.display = isLoggedIn ? 'block' : 'none';
-}
-loginBtn.addEventListener('click', () => {
-  isLoggedIn = true;
-  updateAuthUI();
-});
-logoutBtn.addEventListener('click', () => {
-  isLoggedIn = false;
-  updateAuthUI();
-});
-
-// 게시글 리스트 예시 (더미)
-let posts = [
-  {
-    id: 1,
-    title: '환영합니다 🎉',
-    content: '체르 갤러리에 오신 것을 환영합니다!',
-    author: '관리자',
-    date: '2025-08-01',
-    category: '공지',
-    comments: [],
-  }
-];
-
-// 게시글 렌더링
-function renderPosts() {
-  postList.innerHTML = '';
-  const filtered = posts.filter(post =>
-    (categorySelect.value === '' || post.category === categorySelect.value) &&
-    (searchInput.value === '' || post.title.includes(searchInput.value) || post.content.includes(searchInput.value))
-  );
-  filtered.forEach(post => {
-    const li = document.createElement('li');
-    li.innerHTML = `<div class="post-title">${post.title}</div><div class="post-preview">${post.content.slice(0, 40)}...</div>`;
-    li.addEventListener('click', () => showPostDetail(post));
-    postList.appendChild(li);
+  // 메뉴 열기/닫기
+  burgerMenuBtn.addEventListener('click', () => {
+    const opened = sideMenu.classList.toggle('open');
+    burgerMenuBtn.setAttribute('aria-expanded', opened);
+    sideMenu.setAttribute('aria-hidden', !opened);
+    if (opened) {
+      sideMenu.focus();
+    }
   });
-}
+  sideMenuCloseBtn.addEventListener('click', () => {
+    sideMenu.classList.remove('open');
+    burgerMenuBtn.setAttribute('aria-expanded', false);
+    sideMenu.setAttribute('aria-hidden', true);
+    burgerMenuBtn.focus();
+  });
 
-// 게시글 상세 보기
-function showPostDetail(post) {
-  postDetail.style.display = 'block';
-  postTitle.textContent = post.title;
-  postAuthor.textContent = post.author;
-  postDate.textContent = post.date;
-  postContent.textContent = post.content;
-  writePostSection.style.display = 'none';
-  renderComments(post);
-  postList.style.display = 'none';
-  backToListBtn.onclick = () => {
+  // 로그인 상태 UI 변경
+  function updateAuthUI() {
+    if (currentUser) {
+      loginBtn.style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+      logoutBtn.textContent = `로그아웃 (${currentUser})`;
+      showWritePostBtn.disabled = false;
+    } else {
+      loginBtn.style.display = 'inline-block';
+      logoutBtn.style.display = 'none';
+      showWritePostBtn.disabled = true;
+    }
+  }
+
+  loginBtn.addEventListener('click', () => {
+    openAuthModal('login');
+  });
+  logoutBtn.addEventListener('click', () => {
+    if (confirm('로그아웃 하시겠습니까?')) {
+      currentUser = null;
+      updateAuthUI();
+      alert('로그아웃 되었습니다.');
+    }
+  });
+
+  // 로그인/회원가입 모달 열기 닫기
+  function openAuthModal(mode = 'login') {
+    if (mode === 'login') {
+      loginForm.style.display = 'block';
+      signupForm.style.display = 'none';
+      authModalTitle.textContent = '로그인';
+      loginForm.querySelector('input').focus();
+    } else {
+      loginForm.style.display = 'none';
+      signupForm.style.display = 'block';
+      authModalTitle.textContent = '회원가입';
+      signupForm.querySelector('input').focus();
+    }
+    authModal.classList.add('show');
+    authModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeAuthModal() {
+    authModal.classList.remove('show');
+    authModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  closeModalBtn.addEventListener('click', closeAuthModal);
+  authModal.addEventListener('click', (e) => {
+    if (e.target === authModal) closeAuthModal();
+  });
+
+  showSignupLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    openAuthModal('signup');
+  });
+  showLoginLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    openAuthModal('login');
+  });
+
+  // 로그인 폼 처리 (간단 예시, 서버 연동 필요)
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const username = loginForm.loginUsername.value.trim();
+    const password = loginForm.loginPassword.value.trim();
+    if (!username || !password) {
+      alert('아이디와 비밀번호를 입력해주세요.');
+      return;
+    }
+    // 예: 사용자 존재 여부 확인 (단순히 입력한 이름으로 로그인 허용)
+    currentUser = username;
+    updateAuthUI();
+    closeAuthModal();
+    alert(`${username}님, 환영합니다!`);
+  });
+
+  // 회원가입 폼 처리 (간단 예시)
+  signupForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const username = signupForm.signupUsername.value.trim();
+    const password = signupForm.signupPassword.value;
+    const passwordConfirm = signupForm.signupPasswordConfirm.value;
+    if (!username || !password) {
+      alert('아이디와 비밀번호를 입력해주세요.');
+      return;
+    }
+    if (password !== passwordConfirm) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    // 실제로는 서버에 회원가입 요청 필요
+    alert(`${username}님, 회원가입이 완료되었습니다. 로그인 해주세요.`);
+    openAuthModal('login');
+  });
+
+  // 게시글 리스트 렌더링 함수
+  function renderPostList(filterText = '', filterCategory = '') {
+    postList.innerHTML = '';
+    const filteredPosts = posts.filter(post => {
+      const matchText = post.title.includes(filterText) || post.content.includes(filterText);
+      const matchCategory = filterCategory ? post.category === filterCategory : true;
+      return matchText && matchCategory;
+    });
+    if (filteredPosts.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = '게시글이 없습니다.';
+      li.style.fontWeight = 'normal';
+      postList.appendChild(li);
+      return;
+    }
+    filteredPosts.forEach(post => {
+      const li = document.createElement('li');
+      li.setAttribute('tabindex', 0);
+      li.dataset.id = post.id;
+      const title = document.createElement('div');
+      title.className = 'post-title';
+      title.textContent = post.title;
+      const preview = document.createElement('div');
+      preview.className = 'post-preview';
+      preview.textContent = post.content.slice(0, 50) + (post.content.length > 50 ? '...' : '');
+      li.appendChild(title);
+      li.appendChild(preview);
+      li.addEventListener('click', () => showPostDetail(post.id));
+      li.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          showPostDetail(post.id);
+        }
+      });
+      postList.appendChild(li);
+    });
+  }
+
+  // 게시글 상세 보기
+  function showPostDetail(id) {
+    const post = posts.find(p => p.id === id);
+    if (!post) return;
+    currentPostId = id;
+    postDetailTitle.textContent = post.title;
+    postDetailMeta.textContent = `${post.category} · ${post.createdAt}`;
+    postContent.textContent = post.content;
+
+    // 댓글 렌더링
+    commentsList.innerHTML = '';
+    if (post.comments.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = '댓글이 없습니다.';
+      commentsList.appendChild(li);
+    } else {
+      post.comments.forEach(c => {
+        const li = document.createElement('li');
+        const author = document.createElement('div');
+        author.className = 'author';
+        author.textContent = c.author;
+        const content = document.createElement('div');
+        content.className = 'content';
+        content.textContent = c.content;
+        const createdAt = document.createElement('div');
+        createdAt.className = 'createdAt';
+        createdAt.textContent = c.createdAt;
+        li.appendChild(author);
+        li.appendChild(content);
+        li.appendChild(createdAt);
+        commentsList.appendChild(li);
+      });
+    }
+
+    postList.style.display = 'none';
+    writePostSection.style.display = 'none';
+    postDetail.style.display = 'block';
+  }
+
+  // 게시글 목록으로 돌아가기
+  backToListBtn.addEventListener('click', () => {
+    currentPostId = null;
     postDetail.style.display = 'none';
     postList.style.display = 'block';
-  };
-  commentForm.onsubmit = (e) => {
+    writePostSection.style.display = 'none';
+  });
+
+  // 댓글 작성
+  commentForm.addEventListener('submit', e => {
     e.preventDefault();
-    if (!commentInput.value.trim()) return;
+    if (!currentUser) {
+      alert('로그인 후 댓글 작성이 가능합니다.');
+      return;
+    }
+    const commentText = commentInput.value.trim();
+    if (!commentText) return;
+    const post = posts.find(p => p.id === currentPostId);
+    if (!post) return;
+
+    const now = new Date();
+    const createdAt = now.toLocaleString('ko-KR', { hour12: false });
     post.comments.push({
-      author: '익명',
-      content: commentInput.value.trim(),
-      createdAt: new Date().toLocaleString(),
+      author: currentUser,
+      content: commentText,
+      createdAt
     });
     commentInput.value = '';
-    renderComments(post);
-  };
-}
-
-function renderComments(post) {
-  commentsList.innerHTML = '';
-  post.comments.forEach(c => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <div class="author">${c.author}</div>
-      <div class="content">${c.content}</div>
-      <div class="createdAt">${c.createdAt}</div>
-    `;
-    commentsList.appendChild(li);
+    showPostDetail(currentPostId);
   });
-}
 
-// 글쓰기 폼
-showWritePostBtn.addEventListener('click', () => {
-  writePostSection.style.display = 'block';
-  postDetail.style.display = 'none';
-  postList.style.display = 'none';
-});
-cancelPostBtn.addEventListener('click', () => {
-  writePostSection.style.display = 'none';
-  postList.style.display = 'block';
-});
+  // 검색, 카테고리 필터
+  searchBtn.addEventListener('click', () => {
+    renderPostList(searchInput.value.trim(), categorySelect.value);
+  });
+  categorySelect.addEventListener('change', () => {
+    renderPostList(searchInput.value.trim(), categorySelect.value);
+  });
 
-submitPostBtn.addEventListener('click', () => {
-  if (!newPostTitle.value.trim() || !newPostContent.value.trim()) return;
-  const newPost = {
-    id: posts.length + 1,
-    title: newPostTitle.value.trim(),
-    content: newPostContent.value.trim(),
-    author: '익명',
-    date: new Date().toISOString().split('T')[0],
-    category: newPostCategory.value,
-    comments: [],
-  };
-  posts.unshift(newPost);
-  newPostTitle.value = '';
-  newPostContent.value = '';
-  newPostCategory.value = '자유';
-  writePostSection.style.display = 'none';
-  postList.style.display = 'block';
-  renderPosts();
-});
+  // 글쓰기 버튼 클릭 시 새 글 작성 섹션 토글
+  showWritePostBtn.addEventListener('click', () => {
+    if (!currentUser) {
+      alert('글 작성은 로그인 후 가능합니다.');
+      openAuthModal('login');
+      return;
+    }
+    const expanded = showWritePostBtn.getAttribute('aria-expanded') === 'true';
+    if (expanded) {
+      writePostSection.style.display = 'none';
+      showWritePostBtn.setAttribute('aria-expanded', 'false');
+      postList.style.display = 'block';
+    } else {
+      writePostSection.style.display = 'block';
+      showWritePostBtn.setAttribute('aria-expanded', 'true');
+      postList.style.display = 'none';
+      postDetail.style.display = 'none';
+      writePostTitle.focus();
+    }
+  });
 
-// 검색 및 필터
-searchBtn.addEventListener('click', renderPosts);
-categorySelect.addEventListener('change', renderPosts);
+  // 새 글 작성 제출
+  submitPostBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const title = writePostTitle.value.trim();
+    const category = writePostCategory.value;
+    const content = writePostContent.value.trim();
 
-// 초기 실행
-updateAuthUI();
-renderPosts();
+    if (!title) {
+      alert('제목을 입력해주세요.');
+      writePostTitle.focus();
+      return;
+    }
+    if (!category) {
+      alert('카테고리를 선택해주세요.');
+      writePostCategory.focus();
+      return;
+    }
+    if (!content) {
+      alert('내용을 입력해주세요.');
+      writePostContent.focus();
+      return;
+    }
+
+    // 새 게시글 추가
+    const now = new Date();
+    const createdAt = now.toLocaleString('ko-KR', { hour12: false });
+    const newId = posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1;
+    posts.unshift({
+      id: newId,
+      title,
+      category,
+      content,
+      createdAt,
+      comments: []
+    });
+
+    alert('게시글이 작성되었습니다.');
+    // 초기화 및 화면 전환
+    writePostTitle.value = '';
+    writePostCategory.value = '';
+    writePostContent.value = '';
+    writePostSection.style.display = 'none';
+    showWritePostBtn.setAttribute('aria-expanded', 'false');
+    renderPostList(searchInput.value.trim(), categorySelect.value);
+    postList.style.display = 'block';
+  });
+
+  // 새 글 작성 취소
+  cancelPostBtn.addEventListener('click', () => {
+    writePostTitle.value = '';
+    writePostCategory.value = '';
+    writePostContent.value = '';
+    writePostSection.style.display = 'none';
+    showWritePostBtn.setAttribute('aria-expanded', 'false');
+    postList.style.display = 'block';
+  });
+
+  // 테마 토글 (라이트 / 다크)
+  toggleThemeBtn.addEventListener('click', () => {
+    if (body.classList.contains('light')) {
+      body.classList.replace('light', 'dark');
+      toggleThemeBtn.textContent = '☀️';
+      toggleThemeBtn.setAttribute('aria-pressed', 'true');
+    } else {
+      body.classList.replace('dark', 'light');
+      toggleThemeBtn.textContent = '🌙';
+      toggleThemeBtn.setAttribute('aria-pressed', 'false');
+    }
+  });
+
+  // 초기 렌더링
+  updateAuthUI();
+  renderPostList();
+
 </script>
 </body>
 </html>
