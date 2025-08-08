@@ -5,1024 +5,723 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>체르 갤러리</title>
 <style>
-  /* 기본 & 리셋 */
+  /* 기존 스타일 복사 + 로그인 모달, 버튼 스타일 추가 */
   * {
     box-sizing: border-box;
   }
   body {
-    margin: 0 auto;
     max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    line-height: 1.5;
-    color: var(--text-color);
-    background-color: var(--bg-color);
-    -webkit-tap-highlight-color: transparent;
+    background: #f0f2f7;
+    color: #222;
     min-height: 100vh;
-    padding-bottom: 70px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  body.light {
-    --bg-color: #f0f2f7;
-    --text-color: #222;
-    --primary-color: #3366ff;
-    --input-bg: #fff;
-    --input-border: #c4c9dd;
-    --btn-bg: linear-gradient(135deg, #3366ff, #254eda);
-    --btn-hover-bg: linear-gradient(135deg, #254eda, #1e3bb3);
-    --modal-bg: #fff;
-    --comment-bg: #f8fbff;
-    --comment-border: #d5dbed;
-    --header-bg: #e6ebff;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
   }
   body.dark {
-    --bg-color: #12161f;
-    --text-color: #eee;
-    --primary-color: #5599ff;
-    --input-bg: #1f2233;
-    --input-border: #394165;
-    --btn-bg: linear-gradient(135deg, #5599ff, #3366ff);
-    --btn-hover-bg: linear-gradient(135deg, #3366ff, #254eda);
-    --modal-bg: #1f2233;
-    --comment-bg: #2a2e45;
-    --comment-border: #394165;
-    --header-bg: #1e2239;
+    background: #121622;
+    color: #ddd;
   }
-  /* 헤더 */
+  #modeToggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: #3366ff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    line-height: 32px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(51,102,255,0.5);
+    user-select: none;
+    transition: background-color 0.3s;
+    z-index: 2000;
+  }
+  #modeToggle:hover {
+    background: #254eda;
+  }
   header {
-    position: sticky;
-    top: 0;
-    background: var(--header-bg);
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    gap: 10px;
-    z-index: 150;
-    border-bottom: 1px solid var(--input-border);
+    text-align: center;
+    margin-bottom: 28px;
+    position: relative;
   }
   header h1 {
-    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #3366ff;
+    margin-bottom: 6px;
+    letter-spacing: 1.5px;
+  }
+  body.dark header h1 {
+    color: #81a8ff;
+  }
+  header p {
+    font-size: 1rem;
+    color: #666;
+  }
+  body.dark header p {
+    color: #aaa;
+  }
+  #loginBtn, #logoutBtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 10px 16px;
+    background: #3366ff;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 6px 14px;
     font-weight: 700;
-    font-size: 1.5rem;
-    flex-grow: 1;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
     user-select: none;
   }
-
-  /* 버거 메뉴 버튼 */
-  #burgerMenuBtn {
-    width: 30px;
-    height: 24px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
+  #loginBtn:hover, #logoutBtn:hover {
+    background: #254eda;
+  }
+  #blockedMessage {
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 24px;
+    background: #ffcccc;
+    border-radius: 12px;
+    color: #a00;
+    font-weight: 900;
+    display: none;
+  }
+  #mainContent {
+    /* 기본 보여짐 */
+  }
+  #topBar {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  #burgerMenuBtn span {
-    display: block;
-    height: 3px;
-    background: var(--primary-color);
-    border-radius: 2px;
-  }
-
-  /* 로그인 버튼 (버거바 옆) */
-  #loginBtn {
-    padding: 6px 14px;
-    font-weight: 600;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    background: var(--btn-bg);
-    color: white;
-    transition: background 0.3s;
-  }
-  #loginBtn:hover {
-    background: var(--btn-hover-bg);
-  }
-
-  /* 로그아웃 버튼 */
-  #logoutBtn {
-    padding: 6px 14px;
-    font-weight: 600;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    background: var(--btn-bg);
-    color: white;
-    transition: background 0.3s;
-    margin-left: auto;
-  }
-  #logoutBtn:hover {
-    background: var(--btn-hover-bg);
-  }
-
-  /* 사이드 메뉴 */
-  #sideMenu {
-    position: fixed;
-    top: 0;
-    left: -240px;
-    width: 220px;
-    height: 100vh;
-    background: var(--modal-bg);
-    box-shadow: 2px 0 8px rgb(0 0 0 / 0.15);
-    padding: 20px 16px;
-    box-sizing: border-box;
-    transition: left 0.3s ease;
-    z-index: 200;
-  }
-  #sideMenu.open {
-    left: 0;
-  }
-  #sideMenu .closeBtn {
-    background: transparent;
-    border: none;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    cursor: pointer;
-    margin-bottom: 16px;
-  }
-  #sideMenu ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  #sideMenu ul li {
-    margin-bottom: 12px;
-  }
-  #sideMenu ul li button {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    background: var(--btn-bg);
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  #sideMenu ul li button:hover {
-    background: var(--btn-hover-bg);
-  }
-
-  /* 메인 영역 */
-  main {
-    padding: 10px 16px 70px;
-  }
-
-  /* 검색창 */
-  #searchSection {
-    margin-bottom: 12px;
-    display: flex;
-    gap: 8px;
+    gap: 12px;
+    margin-bottom: 26px;
   }
   #searchInput {
     flex-grow: 1;
-    padding: 10px 14px;
+    max-width: 65%;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 2px solid #d0d7e9;
     font-size: 1rem;
-    border-radius: 8px;
-    border: 1.5px solid var(--input-border);
-    background: var(--input-bg);
-    color: var(--text-color);
-    outline-offset: 2px;
-  }
-  #searchBtn {
-    padding: 10px 16px;
     font-weight: 600;
-    border-radius: 8px;
+    background: white;
+    color: #222;
+    transition: 0.3s;
+  }
+  #searchInput:focus {
+    border-color: #3366ff;
+    box-shadow: 0 0 8px rgba(51,102,255,0.3);
+    outline: none;
+  }
+  body.dark #searchInput {
+    background: #2a2f40;
+    border-color: #4a4f68;
+    color: #ddd;
+  }
+  body.dark #searchInput:focus {
+    border-color: #81a8ff;
+    box-shadow: 0 0 10px rgba(129,168,255,0.5);
+  }
+  #writePostBtn {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #3366ff, #254eda);
+    color: #fff;
     border: none;
-    background: var(--btn-bg);
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  #searchBtn:hover {
-    background: var(--btn-hover-bg);
-  }
-
-  /* 카테고리 선택 */
-  #categorySelect {
-    width: 100%;
-    padding: 8px 12px;
-    font-size: 1rem;
-    margin-bottom: 14px;
-    border-radius: 8px;
-    border: 1.5px solid var(--input-border);
-    background: var(--input-bg);
-    color: var(--text-color);
-  }
-
-  /* 게시글 리스트 */
-  #postList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  #postList li {
-    padding: 12px 16px;
-    border-radius: 10px;
-    background: var(--comment-bg);
-    border: 1.5px solid var(--comment-border);
-    margin-bottom: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    flex-direction: column;
-    transition: background 0.2s, color 0.2s;
-  }
-  #postList li:hover {
-    background: var(--primary-color);
-    color: white;
-  }
-  #postList li .post-title {
-    font-weight: 700;
+    border-radius: 14px;
+    font-weight: 800;
     font-size: 1.1rem;
-    margin-bottom: 6px;
-  }
-  #postList li .post-preview {
-    font-weight: 400;
-    font-size: 0.9rem;
-    color: #666;
-  }
-
-  /* 게시글 상세 */
-  #postDetail {
-    display: none;
-    margin-top: 20px;
-  }
-  #postDetail h3 {
-    margin-top: 0;
-    font-weight: 700;
-  }
-  #postDetail .post-meta {
-    font-size: 0.85rem;
-    color: #777;
-    margin-bottom: 12px;
-  }
-  #postContent {
-    white-space: pre-wrap;
-    margin-bottom: 20px;
-  }
-  #backToListBtn {
-    background: transparent;
-    border: none;
-    color: var(--primary-color);
-    font-weight: 600;
     cursor: pointer;
-    margin-bottom: 20px;
+    box-shadow: 0 8px 22px rgba(51,102,255,0.55);
+    user-select: none;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+    max-width: 35%;
   }
-  #backToListBtn:hover {
-    text-decoration: underline;
+  #writePostBtn:disabled {
+    background: #999;
+    cursor: not-allowed;
+    box-shadow: none;
   }
-
-  /* 댓글 섹션 */
-  #commentsSection {
-    margin-top: 30px;
+  #writePostBtn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #254eda, #1e3bb3);
   }
-  #commentsSection h4 {
-    margin-bottom: 12px;
-    font-weight: 600;
+  #writePostBtn:active:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(51,102,255,0.7);
   }
-  #commentsList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    max-height: 240px;
+  #postsList {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.07);
+    padding: 20px 24px;
+    max-height: 65vh;
     overflow-y: auto;
   }
-  #commentsList li {
-    background: var(--comment-bg);
-    border: 1px solid var(--comment-border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 10px;
+  body.dark #postsList {
+    background: #1d2333;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
   }
-  #commentsList li .author {
-    font-weight: 700;
-    font-size: 0.9rem;
-    margin-bottom: 6px;
+  #postsList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
-  #commentsList li .content {
-    white-space: pre-wrap;
-    font-size: 0.95rem;
-  }
-  #commentsList li .createdAt {
-    font-size: 0.75rem;
-    color: #777;
-    margin-top: 6px;
-  }
-
-  /* 댓글 작성 폼 */
-  #commentForm {
+  #postsList li {
+    padding: 16px 14px;
+    border-bottom: 1.3px solid #e6e9f8;
+    cursor: pointer;
+    border-radius: 14px;
+    transition: background-color 0.3s ease;
     display: flex;
-    margin-top: 14px;
+    flex-direction: column;
   }
-  #commentInput {
-    flex-grow: 1;
-    padding: 10px 14px;
-    border: 1.5px solid var(--input-border);
-    border-radius: 8px 0 0 8px;
-    font-size: 1rem;
-    background: var(--input-bg);
-    color: var(--text-color);
-    outline-offset: 2px;
+  body.dark #postsList li {
+    border-bottom: 1.3px solid #38405d;
   }
-  #commentSubmitBtn {
-    padding: 0 20px;
-    background: var(--btn-bg);
-    border: none;
-    color: white;
-    font-weight: 700;
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    transition: background 0.3s;
+  #postsList li:last-child {
+    border-bottom: none;
   }
-  #commentSubmitBtn:hover {
-    background: var(--btn-hover-bg);
+  #postsList li:hover,
+  #postsList li:focus {
+    background: #e8efff;
+    outline: none;
   }
-
-  /* 새 글 작성 버튼 - 오른쪽 하단 고정 */
-  #showWritePostBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--btn-bg);
-    border: none;
-    color: white;
-    padding: 14px 22px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    border-radius: 50px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 0.2);
-    transition: background 0.3s, transform 0.15s;
-    z-index: 90;
+  body.dark #postsList li:hover,
+  body.dark #postsList li:focus {
+    background: #2d3552;
   }
-  #showWritePostBtn:hover {
-    background: var(--btn-hover-bg);
-    transform: scale(1.05);
-  }
-  #showWritePostBtn:active {
-    transform: scale(0.95);
-  }
-
-  /* 오류 메시지 */
-  .errorMsg {
-    color: #e53e3e;
-    font-size: 0.85rem;
-    margin-bottom: 8px;
-    text-align: center;
-  }
-
-  /* 게시글 작성 섹션 */
-  #writePostSection {
-    display: none;
-    margin-top: 20px;
-  }
-  #writePostSection input[type="text"],
-  #writePostSection textarea,
-  #writePostSection select {
-    width: 100%;
-    padding: 10px 14px;
-    margin-bottom: 12px;
-    font-size: 1rem;
-    border-radius: 8px;
-    border: 1.5px solid var(--input-border);
-    background: var(--input-bg);
-    color: var(--text-color);
-    outline-offset: 2px;
-    box-sizing: border-box;
-  }
-  #writePostSection textarea {
-    resize: vertical;
-    height: 120px;
-  }
-  #writePostSection .btn-group {
-    display: flex;
-    gap: 10px;
-  }
-  #submitPostBtn,
-  #cancelPostBtn {
-    flex-grow: 1;
-    padding: 12px 0;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
-    color: white;
-    background: var(--btn-bg);
-    transition: background 0.3s;
-  }
-  #submitPostBtn:hover,
-  #cancelPostBtn:hover {
-    background: var(--btn-hover-bg);
-  }
-  #cancelPostBtn {
-    background: #aaa;
-  }
-  #cancelPostBtn:hover {
-    background: #888;
-  }
-
-  /* 라이트/다크 모드 토글 버튼 */
-  #toggleThemeBtn {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 110;
-    background: var(--btn-bg);
-    border: none;
-    color: white;
-    padding: 8px 12px;
+  .post-title {
+    font-weight: 800;
     font-size: 1.2rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s;
+    color: #3366ff;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  #toggleThemeBtn:hover {
-    background: var(--btn-hover-bg);
+  body.dark .post-title {
+    color: #81a8ff;
   }
-
-  /* 로그인/회원가입 모달 공통 */
+  .post-meta {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #7a8198;
+    white-space: nowrap;
+  }
+  body.dark .post-meta {
+    color: #a0a7c4;
+  }
   .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
-    display: flex;
+    background: rgba(20,30,70,0.6);
+    backdrop-filter: blur(6px);
+    display: none;
     justify-content: center;
     align-items: center;
-    z-index: 300;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+    padding: 20px 16px;
+    z-index: 1600;
   }
-  .modal.show {
-    opacity: 1;
-    pointer-events: auto;
+  .modal.active {
+    display: flex;
   }
   .modal-content {
-    background: var(--modal-bg);
-    border-radius: 12px;
-    padding: 24px 30px;
+    background: #fff;
+    border-radius: 24px;
     width: 100%;
-    max-width: 360px;
-    box-sizing: border-box;
-    box-shadow: 0 8px 16px rgb(0 0 0 / 0.2);
+    max-width: 480px;
+    max-height: 85vh;
+    padding: 32px 36px 36px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    overflow-y: auto;
     position: relative;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+  }
+  body.dark .modal-content {
+    background: #1e2435;
+    color: #ddd;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
   }
   .modal-content h2 {
-    margin-top: 0;
-    font-weight: 700;
-    margin-bottom: 16px;
-    text-align: center;
+    font-weight: 900;
+    font-size: 1.8rem;
+    color: #3366ff;
+    margin-bottom: 26px;
   }
-  .modal-content input {
+  body.dark .modal-content h2 {
+    color: #81a8ff;
+  }
+  .modal-content input[type="text"],
+  .modal-content input[type="password"],
+  .modal-content textarea {
     width: 100%;
-    padding: 10px 14px;
-    margin-bottom: 12px;
-    border-radius: 8px;
-    border: 1.5px solid var(--input-border);
-    background: var(--input-bg);
-    color: var(--text-color);
+    padding: 14px 18px;
+    border-radius: 18px;
+    border: 2px solid #d4d9e8;
     font-size: 1rem;
-    outline-offset: 2px;
-    box-sizing: border-box;
+    font-weight: 600;
+    resize: vertical;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'Pretendard', sans-serif;
+    margin-bottom: 18px;
+    background: white;
+    color: #222;
   }
-  .modal-content button {
-    width: 100%;
-    padding: 12px 0;
+  body.dark .modal-content input[type="text"],
+  body.dark .modal-content input[type="password"],
+  body.dark .modal-content textarea {
+    background: #2c3249;
+    border-color: #4a4f68;
+    color: #ddd;
+  }
+  .modal-content input[type="text"]:focus,
+  .modal-content input[type="password"]:focus,
+  .modal-content textarea:focus {
+    border-color: #3366ff;
+    box-shadow: 0 0 12px rgba(51,102,255,0.5);
+    outline: none;
+  }
+  body.dark .modal-content input[type="text"]:focus,
+  body.dark .modal-content input[type="password"]:focus,
+  body.dark .modal-content textarea:focus {
+    border-color: #81a8ff;
+    box-shadow: 0 0 14px rgba(129,168,255,0.6);
+  }
+  .modal-content button#submitPostBtn,
+  .modal-content button#submitLoginBtn {
+    background: linear-gradient(135deg, #3366ff, #254eda);
     border: none;
-    border-radius: 8px;
-    background: var(--btn-bg);
+    border-radius: 20px;
+    padding: 16px 0;
+    font-weight: 900;
+    font-size: 1.3rem;
     color: white;
-    font-weight: 700;
-    font-size: 1rem;
     cursor: pointer;
-    transition: background 0.3s;
+    box-shadow: 0 10px 28px rgba(51,102,255,0.55);
+    user-select: none;
+    transition: background 0.3s ease;
+    margin-top: auto;
   }
-  .modal-content button:hover {
-    background: var(--btn-hover-bg);
+  .modal-content button#submitPostBtn:hover,
+  .modal-content button#submitLoginBtn:hover {
+    background: linear-gradient(135deg, #254eda, #1e3bb3);
   }
-  .modal-content .switch-auth {
-    margin-top: 12px;
-    text-align: center;
-    font-size: 0.9rem;
+  .modal-content button#submitPostBtn:active,
+  .modal-content button#submitLoginBtn:active {
+    box-shadow: 0 5px 16px rgba(51,102,255,0.7);
   }
-  .modal-content .switch-auth a {
-    cursor: pointer;
-    color: var(--primary-color);
-    text-decoration: underline;
-  }
-  .modal-content .close-modal-btn {
+  .modal-content .closeBtn {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 14px;
+    right: 18px;
+    font-size: 2.6rem;
     background: transparent;
     border: none;
-    font-size: 1.3rem;
+    color: #8c95b8;
     font-weight: 700;
     cursor: pointer;
-    color: var(--primary-color);
+    transition: color 0.3s ease;
+    user-select: none;
   }
-  .errorMsg {
-    color: #e53e3e;
-    font-size: 0.85rem;
-    margin-bottom: 8px;
-    text-align: center;
+  .modal-content .closeBtn:hover {
+    color: #3366ff;
+  }
+  body.dark .modal-content .closeBtn {
+    color: #a1a8cc;
+  }
+  body.dark .modal-content .closeBtn:hover {
+    color: #81a8ff;
+  }
+  #postDetailContent {
+    white-space: pre-wrap;
+    color: #404556;
+    font-size: 1.15rem;
+    margin-bottom: 20px;
+  }
+  body.dark #postDetailContent {
+    color: #ccc;
+  }
+  #commentForm {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  #commentForm input[type="text"] {
+    flex: 1 1 45%;
+    padding: 14px 18px;
+    border-radius: 30px;
+    border: 2px solid #d5dbe8;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background: white;
+    color: #222;
+  }
+  body.dark #commentForm input[type="text"] {
+    background: #2c3249;
+    border-color: #4a4f68;
+    color: #ddd;
+  }
+  #commentForm input[type="text"]:focus {
+    border-color: #3366ff;
+    box-shadow: 0 0 12px rgba(51,102,255,0.35);
+    outline: none;
+  }
+  body.dark #commentForm input[type="text"]:focus {
+    border-color: #81a8ff;
+    box-shadow: 0 0 14px rgba(129,168,255,0.6);
+  }
+  #commentForm button {
+    flex: 1 1 100%;
+    background: linear-gradient(135deg, #3366ff, #254eda);
+    color: white;
+    font-weight: 900;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 30px;
+    padding: 16px 0;
+    cursor: pointer;
+    box-shadow: 0 10px 28px rgba(51,102,255,0.55);
+    user-select: none;
+    transition: background 0.3s ease;
+  }
+  #commentForm button:hover {
+    background: linear-gradient(135deg, #254eda, #1e3bb3);
+  }
+  #commentForm button:active {
+    box-shadow: 0 5px 16px rgba(51,102,255,0.7);
+  }
+  @media (max-width: 400px) {
+    #commentForm input[type="text"] {
+      flex-basis: 100% !important;
+      margin-bottom: 10px !important;
+    }
+    #commentForm button {
+      margin-top: 0;
+    }
+  }
+  #commentsList {
+    max-height: 320px;
+    overflow-y: auto;
+    background: #f8fbff;
+    border: 2px solid #d5dbed;
+    border-radius: 20px;
+    padding: 14px 22px;
+    color: #3c475b;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  body.dark #commentsList {
+    background: #27304a;
+    border-color: #38405d;
+    color: #ccc;
+  }
+  .comment-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #d9e0f5;
+    outline: none;
+    position: relative;
+  }
+  body.dark .comment-item {
+    border-color: #3a4163;
+  }
+  .comment-item:last-child {
+    border-bottom: none;
+  }
+  .comment-author {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #3366ff;
+  }
+  body.dark .comment-author {
+    color: #81a8ff;
+  }
+  .comment-text {
+    white-space: pre-wrap;
   }
 </style>
 </head>
-<body class="light">
+<body>
+<button id="modeToggle" aria-label="라이트/다크 모드 전환" title="라이트/다크 모드 전환">☀️</button>
 <header>
-  <button id="burgerMenuBtn" aria-label="메뉴 열기" aria-expanded="false" aria-controls="sideMenu">
-    <span></span>
-    <span></span>
-    <span></span>
-  </button>
   <h1>체르 갤러리</h1>
-  <button id="loginBtn" style="display:none;">로그인</button>
-  <button id="logoutBtn" style="display:none;">로그아웃</button>
+  <p>MADE BY JAMYUN</p>
+  <button id="loginBtn" aria-label="로그인하기">로그인</button>
+  <button id="logoutBtn" aria-label="로그아웃하기" style="display:none;">로그아웃</button>
 </header>
 
-<!-- 사이드 메뉴 -->
-<nav id="sideMenu" aria-hidden="true" tabindex="-1">
-  <button class="closeBtn" aria-label="메뉴 닫기">&times;</button>
-  <ul>
-    <li><button>임시 버튼1</button></li>
-    <li><button>임시 버튼2</button></li>
-    <li><button>임시 버튼3</button></li>
-  </ul>
-</nav>
+<div id="blockedMessage" role="alert" aria-live="assertive">차단된 IP입니다. 접속이 제한됩니다.</div>
 
-<main>
-  <!-- 검색 + 카테고리 -->
-  <section id="searchSection">
-    <input id="searchInput" type="search" placeholder="게시물 검색" aria-label="게시물 검색" />
-    <button id="searchBtn" aria-label="검색 실행">검색</button>
+<div id="mainContent">
+  <div id="topBar">
+    <input type="text" id="searchInput" placeholder="제목으로 검색" aria-label="게시물 제목 검색" />
+    <button id="writePostBtn" aria-label="게시글 작성하기" disabled>글쓰기</button>
+  </div>
+  <section id="postsList" aria-label="게시글 목록">
+    <ul tabindex="0"></ul>
   </section>
+</div>
 
-  <select id="categorySelect" aria-label="카테고리 선택">
-    <option value="">전체 카테고리</option>
-    <option value="자유">자유</option>
-    <option value="공지">공지</option>
-    <option value="질문">질문</option>
-  </select>
-
-  <!-- 게시글 리스트 -->
-  <ul id="postList" aria-live="polite" aria-relevant="additions"></ul>
-
-  <!-- 게시글 상세 -->
-  <section id="postDetail" aria-live="polite" aria-atomic="true">
-    <button id="backToListBtn" aria-label="게시글 목록으로 돌아가기">&larr; 목록</button>
-    <h3 id="postDetailTitle"></h3>
-    <div class="post-meta" id="postDetailMeta"></div>
-    <div id="postContent"></div>
-
-    <!-- 댓글 섹션 -->
-    <section id="commentsSection" aria-label="댓글 목록">
-      <h4>댓글</h4>
-      <ul id="commentsList"></ul>
-
-      <!-- 댓글 작성 폼 -->
-      <form id="commentForm" aria-label="댓글 작성 폼">
-        <input type="text" id="commentInput" placeholder="댓글을 입력하세요." aria-label="댓글 입력" required />
-        <button type="submit" id="commentSubmitBtn">작성</button>
-      </form>
-    </section>
-  </section>
-
-  <!-- 새 글 작성 섹션 -->
-  <section id="writePostSection" aria-label="새 게시글 작성">
-    <h3>새 게시글 작성</h3>
-    <input type="text" id="writePostTitle" placeholder="제목" aria-label="제목 입력" required />
-    <select id="writePostCategory" aria-label="카테고리 선택" required>
-      <option value="">카테고리 선택</option>
-      <option value="자유">자유</option>
-      <option value="공지">공지</option>
-      <option value="질문">질문</option>
-    </select>
-    <textarea id="writePostContent" placeholder="내용을 입력하세요." aria-label="내용 입력" required></textarea>
-    <div class="btn-group">
-      <button id="submitPostBtn">작성</button>
-      <button id="cancelPostBtn" type="button">취소</button>
-    </div>
-  </section>
-</main>
-
-<button id="showWritePostBtn" aria-haspopup="true" aria-controls="writePostSection" aria-expanded="false">글쓰기</button>
-<button id="toggleThemeBtn" aria-pressed="false" aria-label="라이트/다크 모드 전환">🌙</button>
-
-<!-- 로그인/회원가입 모달 -->
-<div id="authModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" tabindex="-1" aria-hidden="true">
+<!-- 글쓰기 모달 -->
+<div class="modal" id="postModal" role="dialog" aria-modal="true" aria-labelledby="postModalTitle" tabindex="-1">
   <div class="modal-content">
-    <button class="close-modal-btn" aria-label="모달 닫기">&times;</button>
-    <h2 id="authModalTitle">로그인</h2>
-    <form id="loginForm">
-      <input type="text" id="loginUsername" placeholder="아이디" aria-label="아이디 입력" required />
-      <input type="password" id="loginPassword" placeholder="비밀번호" aria-label="비밀번호 입력" required />
-      <button type="submit">로그인</button>
-    </form>
-    <div class="switch-auth">
-      계정이 없으신가요? <a href="#" id="showSignupLink">회원가입</a>
-    </div>
+    <button class="closeBtn" title="닫기" aria-label="닫기">&times;</button>
+    <h2 id="postModalTitle">게시글 작성</h2>
+    <input type="text" id="postTitle" placeholder="제목을 입력하세요" aria-label="게시글 제목 입력" />
+    <textarea id="postContent" rows="6" placeholder="내용을 입력하세요" aria-label="게시글 내용 입력"></textarea>
+    <button id="submitPostBtn">작성 완료</button>
+  </div>
+</div>
 
-    <form id="signupForm" style="display:none;">
-      <input type="text" id="signupUsername" placeholder="아이디" aria-label="아이디 입력" required />
-      <input type="password" id="signupPassword" placeholder="비밀번호" aria-label="비밀번호 입력" required />
-      <input type="password" id="signupPasswordConfirm" placeholder="비밀번호 확인" aria-label="비밀번호 확인 입력" required />
-      <button type="submit">회원가입</button>
+<!-- 게시글 상세 모달 -->
+<div class="modal" id="postDetailModal" role="dialog" aria-modal="true" aria-labelledby="postDetailTitle" tabindex="-1">
+  <div class="modal-content">
+    <button class="closeBtn" title="닫기" aria-label="닫기">&times;</button>
+    <h2 id="postDetailTitle">게시글 상세</h2>
+    <div id="postDetailContent"></div>
+
+    <!-- 댓글 작성 폼 -->
+    <form id="commentForm" aria-label="댓글 작성 폼">
+      <input type="text" id="commentAuthor" placeholder="작성자 이름" aria-label="댓글 작성자 이름" required />
+      <input type="text" id="commentText" placeholder="댓글 내용을 입력하세요" aria-label="댓글 내용" required />
+      <button type="submit">댓글 작성</button>
     </form>
-    <div class="switch-auth" style="display:none;">
-      이미 계정이 있으신가요? <a href="#" id="showLoginLink">로그인</a>
-    </div>
+
+    <!-- 댓글 목록 -->
+    <div id="commentsList" aria-live="polite" aria-relevant="additions"></div>
+  </div>
+</div>
+
+<!-- 로그인 모달 -->
+<div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle" tabindex="-1">
+  <div class="modal-content">
+    <button class="closeBtn" title="닫기" aria-label="닫기">&times;</button>
+    <h2 id="loginModalTitle">로그인</h2>
+    <input type="text" id="loginUsername" placeholder="아이디" aria-label="아이디 입력" />
+    <input type="password" id="loginPassword" placeholder="비밀번호" aria-label="비밀번호 입력" />
+    <button id="submitLoginBtn">로그인</button>
   </div>
 </div>
 
 <script>
-  // 상태 관리용 데이터 예시 (실제 서버 연동 필요)
-  let posts = [
-    {
-      id: 1,
-      title: "첫 게시글입니다",
-      category: "공지",
-      content: "체르 갤러리에 오신 걸 환영합니다!",
-      createdAt: "2025-08-01 10:00",
-      comments: [
-        { author: "관리자", content: "환영합니다!", createdAt: "2025-08-01 10:10" }
-      ]
-    },
-    {
-      id: 2,
-      title: "자유게시판 첫 글",
-      category: "자유",
-      content: "자유롭게 글을 남겨주세요.",
-      createdAt: "2025-08-01 11:00",
-      comments: []
+  // 다크모드 토글
+  const modeToggle = document.getElementById('modeToggle');
+  modeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    if (document.body.classList.contains('dark')) {
+      modeToggle.textContent = '🌙';
+    } else {
+      modeToggle.textContent = '☀️';
     }
-  ];
+  });
 
-  let currentUser = null; // 로그인 상태
-  let currentPostId = null;
-
-  // DOM 참조
-  const body = document.body;
-  const burgerMenuBtn = document.getElementById('burgerMenuBtn');
-  const sideMenu = document.getElementById('sideMenu');
-  const sideMenuCloseBtn = sideMenu.querySelector('.closeBtn');
+  // 로그인, 로그아웃 버튼, 모달
   const loginBtn = document.getElementById('loginBtn');
   const logoutBtn = document.getElementById('logoutBtn');
-  const authModal = document.getElementById('authModal');
-  const loginForm = document.getElementById('loginForm');
-  const signupForm = document.getElementById('signupForm');
-  const showSignupLink = document.getElementById('showSignupLink');
-  const showLoginLink = document.getElementById('showLoginLink');
-  const authModalTitle = document.getElementById('authModalTitle');
-  const closeModalBtn = authModal.querySelector('.close-modal-btn');
-  const searchInput = document.getElementById('searchInput');
-  const searchBtn = document.getElementById('searchBtn');
-  const categorySelect = document.getElementById('categorySelect');
-  const postList = document.getElementById('postList');
-  const postDetail = document.getElementById('postDetail');
-  const postDetailTitle = document.getElementById('postDetailTitle');
-  const postDetailMeta = document.getElementById('postDetailMeta');
-  const postContent = document.getElementById('postContent');
-  const backToListBtn = document.getElementById('backToListBtn');
-  const commentsList = document.getElementById('commentsList');
-  const commentForm = document.getElementById('commentForm');
-  const commentInput = document.getElementById('commentInput');
-  const writePostSection = document.getElementById('writePostSection');
-  const showWritePostBtn = document.getElementById('showWritePostBtn');
-  const submitPostBtn = document.getElementById('submitPostBtn');
-  const cancelPostBtn = document.getElementById('cancelPostBtn');
-  const writePostTitle = document.getElementById('writePostTitle');
-  const writePostCategory = document.getElementById('writePostCategory');
-  const writePostContent = document.getElementById('writePostContent');
-  const toggleThemeBtn = document.getElementById('toggleThemeBtn');
+  const loginModal = document.getElementById('loginModal');
+  const postModal = document.getElementById('postModal');
+  const postDetailModal = document.getElementById('postDetailModal');
 
-  // 메뉴 열기/닫기
-  burgerMenuBtn.addEventListener('click', () => {
-    const opened = sideMenu.classList.toggle('open');
-    burgerMenuBtn.setAttribute('aria-expanded', opened);
-    sideMenu.setAttribute('aria-hidden', !opened);
-    if (opened) {
-      sideMenu.focus();
-    }
-  });
-  sideMenuCloseBtn.addEventListener('click', () => {
-    sideMenu.classList.remove('open');
-    burgerMenuBtn.setAttribute('aria-expanded', false);
-    sideMenu.setAttribute('aria-hidden', true);
-    burgerMenuBtn.focus();
+  // 열고 닫기 함수
+  function openModal(modal) {
+    modal.classList.add('active');
+    modal.focus();
+  }
+  function closeModal(modal) {
+    modal.classList.remove('active');
+  }
+
+  // 로그인 모달 열기
+  loginBtn.addEventListener('click', () => {
+    openModal(loginModal);
   });
 
-  // 로그인 상태 UI 변경
-  function updateAuthUI() {
-    if (currentUser) {
+  // 모달 닫기 버튼들
+  document.querySelectorAll('.modal .closeBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      closeModal(e.target.closest('.modal'));
+    });
+  });
+
+  // 로그인 처리 (간단한 예)
+  const submitLoginBtn = document.getElementById('submitLoginBtn');
+  submitLoginBtn.addEventListener('click', () => {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if (username === 'user' && password === '1234') {
+      alert('로그인 성공!');
+      closeModal(loginModal);
       loginBtn.style.display = 'none';
       logoutBtn.style.display = 'inline-block';
-      logoutBtn.textContent = `로그아웃 (${currentUser})`;
-      showWritePostBtn.disabled = false;
+      writePostBtn.disabled = false;
     } else {
+      alert('아이디 또는 비밀번호가 틀렸습니다.');
+    }
+  });
+
+  // 로그아웃 처리
+  logoutBtn.addEventListener('click', () => {
+    if(confirm('로그아웃 하시겠습니까?')) {
       loginBtn.style.display = 'inline-block';
       logoutBtn.style.display = 'none';
-      showWritePostBtn.disabled = true;
-    }
-  }
-
-  loginBtn.addEventListener('click', () => {
-    openAuthModal('login');
-  });
-  logoutBtn.addEventListener('click', () => {
-    if (confirm('로그아웃 하시겠습니까?')) {
-      currentUser = null;
-      updateAuthUI();
-      alert('로그아웃 되었습니다.');
+      writePostBtn.disabled = true;
     }
   });
 
-  // 로그인/회원가입 모달 열기 닫기
-  function openAuthModal(mode = 'login') {
-    if (mode === 'login') {
-      loginForm.style.display = 'block';
-      signupForm.style.display = 'none';
-      authModalTitle.textContent = '로그인';
-      loginForm.querySelector('input').focus();
-    } else {
-      loginForm.style.display = 'none';
-      signupForm.style.display = 'block';
-      authModalTitle.textContent = '회원가입';
-      signupForm.querySelector('input').focus();
-    }
-    authModal.classList.add('show');
-    authModal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeAuthModal() {
-    authModal.classList.remove('show');
-    authModal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-  }
-  closeModalBtn.addEventListener('click', closeAuthModal);
-  authModal.addEventListener('click', (e) => {
-    if (e.target === authModal) closeAuthModal();
+  // 글쓰기 버튼
+  const writePostBtn = document.getElementById('writePostBtn');
+  writePostBtn.addEventListener('click', () => {
+    openModal(postModal);
+    // 초기화
+    document.getElementById('postTitle').value = '';
+    document.getElementById('postContent').value = '';
   });
 
-  showSignupLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    openAuthModal('signup');
-  });
-  showLoginLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    openAuthModal('login');
-  });
+  // 게시글 목록
+  const postsListUl = document.querySelector('#postsList ul');
+  const submitPostBtn = document.getElementById('submitPostBtn');
+  const postTitleInput = document.getElementById('postTitle');
+  const postContentTextarea = document.getElementById('postContent');
 
-  // 로그인 폼 처리 (간단 예시, 서버 연동 필요)
-  loginForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const username = loginForm.loginUsername.value.trim();
-    const password = loginForm.loginPassword.value.trim();
-    if (!username || !password) {
-      alert('아이디와 비밀번호를 입력해주세요.');
+  // 게시글 데이터 (임시 저장)
+  let posts = [];
+  let currentPostIndex = null;
+
+  // 게시글 작성 완료
+  submitPostBtn.addEventListener('click', () => {
+    const title = postTitleInput.value.trim();
+    const content = postContentTextarea.value.trim();
+    if(!title || !content) {
+      alert('제목과 내용을 모두 입력해주세요.');
       return;
     }
-    // 예: 사용자 존재 여부 확인 (단순히 입력한 이름으로 로그인 허용)
-    currentUser = username;
-    updateAuthUI();
-    closeAuthModal();
-    alert(`${username}님, 환영합니다!`);
-  });
-
-  // 회원가입 폼 처리 (간단 예시)
-  signupForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const username = signupForm.signupUsername.value.trim();
-    const password = signupForm.signupPassword.value;
-    const passwordConfirm = signupForm.signupPasswordConfirm.value;
-    if (!username || !password) {
-      alert('아이디와 비밀번호를 입력해주세요.');
-      return;
-    }
-    if (password !== passwordConfirm) {
-      alert('비밀번호가 일치하지 않습니다.');
-      return;
-    }
-    // 실제로는 서버에 회원가입 요청 필요
-    alert(`${username}님, 회원가입이 완료되었습니다. 로그인 해주세요.`);
-    openAuthModal('login');
-  });
-
-  // 게시글 리스트 렌더링 함수
-  function renderPostList(filterText = '', filterCategory = '') {
-    postList.innerHTML = '';
-    const filteredPosts = posts.filter(post => {
-      const matchText = post.title.includes(filterText) || post.content.includes(filterText);
-      const matchCategory = filterCategory ? post.category === filterCategory : true;
-      return matchText && matchCategory;
-    });
-    if (filteredPosts.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = '게시글이 없습니다.';
-      li.style.fontWeight = 'normal';
-      postList.appendChild(li);
-      return;
-    }
-    filteredPosts.forEach(post => {
-      const li = document.createElement('li');
-      li.setAttribute('tabindex', 0);
-      li.dataset.id = post.id;
-      const title = document.createElement('div');
-      title.className = 'post-title';
-      title.textContent = post.title;
-      const preview = document.createElement('div');
-      preview.className = 'post-preview';
-      preview.textContent = post.content.slice(0, 50) + (post.content.length > 50 ? '...' : '');
-      li.appendChild(title);
-      li.appendChild(preview);
-      li.addEventListener('click', () => showPostDetail(post.id));
-      li.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          showPostDetail(post.id);
-        }
-      });
-      postList.appendChild(li);
-    });
-  }
-
-  // 게시글 상세 보기
-  function showPostDetail(id) {
-    const post = posts.find(p => p.id === id);
-    if (!post) return;
-    currentPostId = id;
-    postDetailTitle.textContent = post.title;
-    postDetailMeta.textContent = `${post.category} · ${post.createdAt}`;
-    postContent.textContent = post.content;
-
-    // 댓글 렌더링
-    commentsList.innerHTML = '';
-    if (post.comments.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = '댓글이 없습니다.';
-      commentsList.appendChild(li);
-    } else {
-      post.comments.forEach(c => {
-        const li = document.createElement('li');
-        const author = document.createElement('div');
-        author.className = 'author';
-        author.textContent = c.author;
-        const content = document.createElement('div');
-        content.className = 'content';
-        content.textContent = c.content;
-        const createdAt = document.createElement('div');
-        createdAt.className = 'createdAt';
-        createdAt.textContent = c.createdAt;
-        li.appendChild(author);
-        li.appendChild(content);
-        li.appendChild(createdAt);
-        commentsList.appendChild(li);
-      });
-    }
-
-    postList.style.display = 'none';
-    writePostSection.style.display = 'none';
-    postDetail.style.display = 'block';
-  }
-
-  // 게시글 목록으로 돌아가기
-  backToListBtn.addEventListener('click', () => {
-    currentPostId = null;
-    postDetail.style.display = 'none';
-    postList.style.display = 'block';
-    writePostSection.style.display = 'none';
-  });
-
-  // 댓글 작성
-  commentForm.addEventListener('submit', e => {
-    e.preventDefault();
-    if (!currentUser) {
-      alert('로그인 후 댓글 작성이 가능합니다.');
-      return;
-    }
-    const commentText = commentInput.value.trim();
-    if (!commentText) return;
-    const post = posts.find(p => p.id === currentPostId);
-    if (!post) return;
-
-    const now = new Date();
-    const createdAt = now.toLocaleString('ko-KR', { hour12: false });
-    post.comments.push({
-      author: currentUser,
-      content: commentText,
-      createdAt
-    });
-    commentInput.value = '';
-    showPostDetail(currentPostId);
-  });
-
-  // 검색, 카테고리 필터
-  searchBtn.addEventListener('click', () => {
-    renderPostList(searchInput.value.trim(), categorySelect.value);
-  });
-  categorySelect.addEventListener('change', () => {
-    renderPostList(searchInput.value.trim(), categorySelect.value);
-  });
-
-  // 글쓰기 버튼 클릭 시 새 글 작성 섹션 토글
-  showWritePostBtn.addEventListener('click', () => {
-    if (!currentUser) {
-      alert('글 작성은 로그인 후 가능합니다.');
-      openAuthModal('login');
-      return;
-    }
-    const expanded = showWritePostBtn.getAttribute('aria-expanded') === 'true';
-    if (expanded) {
-      writePostSection.style.display = 'none';
-      showWritePostBtn.setAttribute('aria-expanded', 'false');
-      postList.style.display = 'block';
-    } else {
-      writePostSection.style.display = 'block';
-      showWritePostBtn.setAttribute('aria-expanded', 'true');
-      postList.style.display = 'none';
-      postDetail.style.display = 'none';
-      writePostTitle.focus();
-    }
-  });
-
-  // 새 글 작성 제출
-  submitPostBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    const title = writePostTitle.value.trim();
-    const category = writePostCategory.value;
-    const content = writePostContent.value.trim();
-
-    if (!title) {
-      alert('제목을 입력해주세요.');
-      writePostTitle.focus();
-      return;
-    }
-    if (!category) {
-      alert('카테고리를 선택해주세요.');
-      writePostCategory.focus();
-      return;
-    }
-    if (!content) {
-      alert('내용을 입력해주세요.');
-      writePostContent.focus();
-      return;
-    }
-
-    // 새 게시글 추가
-    const now = new Date();
-    const createdAt = now.toLocaleString('ko-KR', { hour12: false });
-    const newId = posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1;
-    posts.unshift({
-      id: newId,
+    posts.push({
       title,
-      category,
       content,
-      createdAt,
+      createdAt: new Date(),
       comments: []
     });
-
-    alert('게시글이 작성되었습니다.');
-    // 초기화 및 화면 전환
-    writePostTitle.value = '';
-    writePostCategory.value = '';
-    writePostContent.value = '';
-    writePostSection.style.display = 'none';
-    showWritePostBtn.setAttribute('aria-expanded', 'false');
-    renderPostList(searchInput.value.trim(), categorySelect.value);
-    postList.style.display = 'block';
+    renderPosts();
+    closeModal(postModal);
   });
 
-  // 새 글 작성 취소
-  cancelPostBtn.addEventListener('click', () => {
-    writePostTitle.value = '';
-    writePostCategory.value = '';
-    writePostContent.value = '';
-    writePostSection.style.display = 'none';
-    showWritePostBtn.setAttribute('aria-expanded', 'false');
-    postList.style.display = 'block';
-  });
+  // 게시글 목록 렌더링
+  function renderPosts(filter='') {
+    postsListUl.innerHTML = '';
+    const filtered = posts.filter(post => post.title.includes(filter));
+    filtered.forEach((post, index) => {
+      const li = document.createElement('li');
+      li.tabIndex = 0;
+      li.setAttribute('role', 'button');
+      li.setAttribute('aria-pressed', 'false');
 
-  // 테마 토글 (라이트 / 다크)
-  toggleThemeBtn.addEventListener('click', () => {
-    if (body.classList.contains('light')) {
-      body.classList.replace('light', 'dark');
-      toggleThemeBtn.textContent = '☀️';
-      toggleThemeBtn.setAttribute('aria-pressed', 'true');
-    } else {
-      body.classList.replace('dark', 'light');
-      toggleThemeBtn.textContent = '🌙';
-      toggleThemeBtn.setAttribute('aria-pressed', 'false');
+      const titleEl = document.createElement('div');
+      titleEl.className = 'post-title';
+      titleEl.textContent = post.title;
+
+      const metaEl = document.createElement('div');
+      metaEl.className = 'post-meta';
+      metaEl.textContent = post.createdAt.toLocaleString();
+
+      li.appendChild(titleEl);
+      li.appendChild(metaEl);
+
+      // 클릭 시 상세보기 모달 열기
+      li.addEventListener('click', () => {
+        openPostDetail(index);
+      });
+      li.addEventListener('keypress', e => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openPostDetail(index);
+        }
+      });
+
+      postsListUl.appendChild(li);
+    });
+  }
+
+  // 게시글 상세 모달 요소
+  const postDetailTitle = document.getElementById('postDetailTitle');
+  const postDetailContent = document.getElementById('postDetailContent');
+  const commentsList = document.getElementById('commentsList');
+  const commentForm = document.getElementById('commentForm');
+  const commentAuthor = document.getElementById('commentAuthor');
+  const commentText = document.getElementById('commentText');
+
+  // 게시글 상세 보기
+  function openPostDetail(index) {
+    currentPostIndex = index;
+    const post = posts[index];
+    postDetailTitle.textContent = post.title;
+    postDetailContent.textContent = post.content;
+    renderComments();
+    openModal(postDetailModal);
+  }
+
+  // 댓글 렌더링
+  function renderComments() {
+    commentsList.innerHTML = '';
+    if(!posts[currentPostIndex]) return;
+    posts[currentPostIndex].comments.forEach(comment => {
+      const div = document.createElement('div');
+      div.className = 'comment-item';
+
+      const author = document.createElement('div');
+      author.className = 'comment-author';
+      author.textContent = comment.author;
+
+      const text = document.createElement('div');
+      text.className = 'comment-text';
+      text.textContent = comment.text;
+
+      div.appendChild(author);
+      div.appendChild(text);
+      commentsList.appendChild(div);
+    });
+  }
+
+  // 댓글 작성 이벤트
+  commentForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const authorVal = commentAuthor.value.trim();
+    const textVal = commentText.value.trim();
+    if(!authorVal || !textVal) {
+      alert('작성자 이름과 댓글 내용을 입력해주세요.');
+      return;
     }
+    if(currentPostIndex === null) return;
+
+    posts[currentPostIndex].comments.push({
+      author: authorVal,
+      text: textVal
+    });
+    commentAuthor.value = '';
+    commentText.value = '';
+    renderComments();
   });
 
-  // 초기 렌더링
-  updateAuthUI();
-  renderPostList();
+  // 검색 기능
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', e => {
+    renderPosts(e.target.value);
+  });
+
+  // 초기 상태: 로그인 안 된 상태라서 글쓰기 버튼 비활성화, 게시글 목록 초기 렌더링
+  writePostBtn.disabled = true;
+  renderPosts();
 
 </script>
 </body>
