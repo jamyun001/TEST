@@ -8,6 +8,12 @@ const port = 80;
 app.use(cors());
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 모든 요청에 대해 index.html 반환 (SPA 용도)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+
 // SQLite DB 초기화
 const db = new sqlite3.Database('./gallery.db');
 db.serialize(() => {
