@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>체르 갤러리</title>
 <style>
-  /* 기존 스타일 복사 + 로그인 모달, 버튼 스타일 추가 */
+  /* 기존 스타일 + 로그인 버튼 왼쪽 위로 수정, 회원가입 스타일 추가 */
   * {
     box-sizing: border-box;
   }
@@ -68,7 +68,24 @@
   body.dark header p {
     color: #aaa;
   }
-  #loginBtn, #logoutBtn {
+  /* 로그인 버튼 왼쪽 위 고정 */
+  #loginBtn {
+    position: fixed;
+    top: 10px;
+    left: 16px;
+    right: auto;
+    background: #3366ff;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 6px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    z-index: 2100;
+  }
+  #logoutBtn {
     position: absolute;
     top: 0;
     right: 0;
@@ -312,7 +329,7 @@
     box-shadow: 0 10px 28px rgba(51,102,255,0.55);
     user-select: none;
     transition: background 0.3s ease;
-    margin-top: 8px;
+    margin-top: auto;
   }
   .modal-content button#submitPostBtn:hover,
   .modal-content button#submitLoginBtn:hover,
@@ -454,6 +471,20 @@
   .comment-text {
     white-space: pre-wrap;
   }
+  /* 회원가입 UI 스타일 */
+  #signupSection {
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    padding-top: 20px;
+  }
+  #signupSection p {
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  #signupSection input[type="text"],
+  #signupSection input[type="password"] {
+    margin-bottom: 14px;
+  }
 </style>
 </head>
 <body>
@@ -482,29 +513,24 @@
   <div class="modal-content">
     <button class="closeBtn" title="닫기" aria-label="닫기">&times;</button>
     <h2 id="postModalTitle">게시글 작성</h2>
-    <input type="text" id="postTitle" placeholder="제목을 입력하세요" aria-label="게시글 제목 입력" />
-    <textarea id="postContent" rows="6" placeholder="내용을 입력하세요" aria-label="게시글 내용 입력"></textarea>
+    <input type="text" id="postTitleInput" placeholder="제목을 입력하세요" aria-label="게시글 제목 입력" />
+    <textarea id="postContentInput" placeholder="내용을 입력하세요" rows="6" aria-label="게시글 내용 입력"></textarea>
     <button id="submitPostBtn">작성 완료</button>
   </div>
 </div>
 
 <!-- 게시글 상세 모달 -->
-<div class="modal" id="postDetailModal" role="dialog" aria-modal="true" aria-labelledby="postDetailTitle" tabindex="-1">
+<div class="modal" id="postDetailModal" role="dialog" aria-modal="true" aria-labelledby="postDetailModalTitle" tabindex="-1">
   <div class="modal-content">
     <button class="closeBtn" title="닫기" aria-label="닫기">&times;</button>
-    <h2 id="postDetailTitle">게시글 상세</h2>
-    <!-- 게시글 상세 모달 계속 -->
+    <h2 id="postDetailModalTitle">게시글 상세</h2>
     <div id="postDetailContent" tabindex="0"></div>
-
     <form id="commentForm" aria-label="댓글 작성 폼">
-      <input type="text" id="commentName" placeholder="닉네임" required aria-required="true" />
-      <input type="text" id="commentText" placeholder="댓글 내용을 입력하세요" required aria-required="true" />
+      <input type="text" id="commentAuthor" placeholder="작성자" aria-label="댓글 작성자 입력" required />
+      <input type="text" id="commentText" placeholder="댓글 내용" aria-label="댓글 내용 입력" required />
       <button type="submit">댓글 작성</button>
     </form>
-
-    <section id="commentsList" aria-label="댓글 목록" tabindex="0">
-      <!-- 댓글이 여기 렌더링됨 -->
-    </section>
+    <div id="commentsList" aria-live="polite" aria-atomic="true"></div>
   </div>
 </div>
 
@@ -516,109 +542,239 @@
     <input type="text" id="loginUsername" placeholder="아이디" aria-label="아이디 입력" />
     <input type="password" id="loginPassword" placeholder="비밀번호" aria-label="비밀번호 입력" />
     <button id="submitLoginBtn">로그인</button>
-    <hr style="margin: 20px 0;" />
-    <h2 style="font-size: 1.4rem; margin-bottom: 16px; color: #3366ff;">회원가입</h2>
-    <input type="text" id="signupUsername" placeholder="아이디" aria-label="회원가입 아이디 입력" />
-    <input type="password" id="signupPassword" placeholder="비밀번호" aria-label="회원가입 비밀번호 입력" />
-    <button id="submitSignupBtn">회원가입</button>
+
+    <div id="signupSection" aria-label="회원가입 섹션">
+      <p>아직 계정이 없으신가요?</p>
+      <input type="text" id="signupUsername" placeholder="새 아이디" aria-label="회원가입 아이디 입력" />
+      <input type="password" id="signupPassword" placeholder="새 비밀번호" aria-label="회원가입 비밀번호 입력" />
+      <button id="submitSignupBtn">회원가입</button>
+    </div>
   </div>
 </div>
 
 <script>
+  // 간단한 회원 데이터 저장용 (로컬 스토리지 활용, 실제 서비스용 아님)
+  let users = JSON.parse(localStorage.getItem('users')) || [];
+  let currentUser = null;
+
+  // 엘리먼트 참조
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const loginModal = document.getElementById('loginModal');
+  const submitLoginBtn = document.getElementById('submitLoginBtn');
+  const submitSignupBtn = document.getElementById('submitSignupBtn');
+  const loginUsername = document.getElementById('loginUsername');
+  const loginPassword = document.getElementById('loginPassword');
+  const signupUsername = document.getElementById('signupUsername');
+  const signupPassword = document.getElementById('signupPassword');
+
+  const writePostBtn = document.getElementById('writePostBtn');
+  const postModal = document.getElementById('postModal');
+  const submitPostBtn = document.getElementById('submitPostBtn');
+  const postTitleInput = document.getElementById('postTitleInput');
+  const postContentInput = document.getElementById('postContentInput');
+
+  const postsListUl = document.querySelector('#postsList ul');
+
   // 모드 토글
   const modeToggle = document.getElementById('modeToggle');
   modeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark');
-    modeToggle.textContent = document.body.classList.contains('dark') ? '🌙' : '☀️';
   });
 
-  // 로그인, 로그아웃 버튼 및 모달
-  const loginBtn = document.getElementById('loginBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const loginModal = document.getElementById('loginModal');
-  const closeBtns = document.querySelectorAll('.modal .closeBtn');
-
+  // 로그인 모달 열기
   loginBtn.addEventListener('click', () => {
     loginModal.classList.add('active');
-    loginModal.querySelector('#loginUsername').focus();
+    loginUsername.focus();
   });
 
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('loggedInUser');
-    updateLoginStatus();
-  });
-
-  closeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.closest('.modal').classList.remove('active');
+  // 모달 닫기
+  document.querySelectorAll('.modal .closeBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.target.closest('.modal').classList.remove('active');
+      clearModalInputs();
     });
   });
 
-  // 로그인 상태 표시 함수
-  function updateLoginStatus() {
-    const user = localStorage.getItem('loggedInUser');
-    if (user) {
-      loginBtn.style.display = 'none';
-      logoutBtn.style.display = 'inline-block';
-      document.getElementById('writePostBtn').disabled = false;
-    } else {
-      loginBtn.style.display = 'inline-block';
-      logoutBtn.style.display = 'none';
-      document.getElementById('writePostBtn').disabled = true;
-    }
+  function clearModalInputs() {
+    loginUsername.value = '';
+    loginPassword.value = '';
+    signupUsername.value = '';
+    signupPassword.value = '';
+    postTitleInput.value = '';
+    postContentInput.value = '';
   }
 
-  updateLoginStatus();
-
-  // 로그인 처리
-  document.getElementById('submitLoginBtn').addEventListener('click', () => {
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-
-    if (!username || !password) {
+  // 회원가입
+  submitSignupBtn.addEventListener('click', () => {
+    const id = signupUsername.value.trim();
+    const pw = signupPassword.value.trim();
+    if (!id || !pw) {
       alert('아이디와 비밀번호를 모두 입력해주세요.');
       return;
     }
-    // 실제 로그인 검증은 서버에서 해야 하지만, 여기서는 간단히 로컬스토리지 사용자 확인
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    if (users[username] && users[username] === password) {
-      localStorage.setItem('loggedInUser', username);
-      updateLoginStatus();
-      alert('로그인 성공!');
-      loginModal.classList.remove('active');
-      document.getElementById('loginUsername').value = '';
-      document.getElementById('loginPassword').value = '';
-    } else {
-      alert('아이디 또는 비밀번호가 일치하지 않습니다.');
-    }
-  });
-
-  // 회원가입 처리
-  document.getElementById('submitSignupBtn').addEventListener('click', () => {
-    const username = document.getElementById('signupUsername').value.trim();
-    const password = document.getElementById('signupPassword').value.trim();
-
-    if (!username || !password) {
-      alert('회원가입 아이디와 비밀번호를 모두 입력해주세요.');
-      return;
-    }
-
-    let users = JSON.parse(localStorage.getItem('users') || '{}');
-
-    if (users[username]) {
+    if (users.find(u => u.id === id)) {
       alert('이미 존재하는 아이디입니다.');
       return;
     }
-
-    users[username] = password;
+    users.push({ id, pw });
     localStorage.setItem('users', JSON.stringify(users));
-    alert('회원가입이 완료되었습니다. 로그인해 주세요.');
-    document.getElementById('signupUsername').value = '';
-    document.getElementById('signupPassword').value = '';
+    alert('회원가입이 완료되었습니다. 로그인해주세요.');
+    signupUsername.value = '';
+    signupPassword.value = '';
   });
 
-  // 그 외 기존 게시판, 댓글 기능 등은 여기에 구현하세요.
-  // (원하시면 이어서 도와드립니다)
+  // 로그인
+  submitLoginBtn.addEventListener('click', () => {
+    const id = loginUsername.value.trim();
+    const pw = loginPassword.value.trim();
+    const user = users.find(u => u.id === id && u.pw === pw);
+    if (!user) {
+      alert('아이디 또는 비밀번호가 틀렸습니다.');
+      return;
+    }
+    currentUser = user;
+    loginModal.classList.remove('active');
+    clearModalInputs();
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    writePostBtn.disabled = false;
+    alert(`${currentUser.id}님 환영합니다!`);
+  });
+
+  // 로그아웃
+  logoutBtn.addEventListener('click', () => {
+    currentUser = null;
+    loginBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+    writePostBtn.disabled = true;
+  });
+
+  // 글쓰기 버튼 클릭 시 모달 열기
+  writePostBtn.addEventListener('click', () => {
+    if (!currentUser) {
+      alert('로그인 후 이용해주세요.');
+      return;
+    }
+    postModal.classList.add('active');
+    postTitleInput.focus();
+  });
+
+  // 글쓰기 제출
+  submitPostBtn.addEventListener('click', () => {
+    const title = postTitleInput.value.trim();
+    const content = postContentInput.value.trim();
+    if (!title || !content) {
+      alert('제목과 내용을 모두 입력해주세요.');
+      return;
+    }
+    addPost({ title, content, author: currentUser.id, date: new Date() });
+    postModal.classList.remove('active');
+    clearModalInputs();
+  });
+
+  // 게시글 데이터 (간단히 메모리 저장, 페이지 새로고침하면 초기화)
+  let posts = [];
+
+  // 게시글 추가 및 리스트 업데이트
+  function addPost(post) {
+    posts.unshift(post);
+    renderPosts();
+  }
+
+  // 게시글 리스트 렌더링
+  function renderPosts() {
+    postsListUl.innerHTML = '';
+    posts.forEach((post, idx) => {
+      const li = document.createElement('li');
+      li.tabIndex = 0;
+      li.setAttribute('role', 'button');
+      li.innerHTML = `
+        <div class="post-title">${post.title}</div>
+        <div class="post-meta">작성자: ${post.author} | 작성일: ${post.date.toLocaleString()}</div>
+      `;
+      li.addEventListener('click', () => showPostDetail(idx));
+      li.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          showPostDetail(idx);
+        }
+      });
+      postsListUl.appendChild(li);
+    });
+  }
+
+  // 게시글 상세 모달 엘리먼트 참조
+  const postDetailModal = document.getElementById('postDetailModal');
+  const postDetailContent = document.getElementById('postDetailContent');
+  const commentForm = document.getElementById('commentForm');
+  const commentAuthorInput = document.getElementById('commentAuthor');
+  const commentTextInput = document.getElementById('commentText');
+  const commentsList = document.getElementById('commentsList');
+
+  // 댓글 저장용
+  let comments = [];
+
+  // 게시글 상세 보기
+  function showPostDetail(idx) {
+    const post = posts[idx];
+    postDetailContent.textContent = `${post.content}`;
+    commentsList.innerHTML = '';
+    // 해당 게시글 댓글만 필터링
+    const postComments = comments.filter(c => c.postIdx === idx);
+    postComments.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'comment-item';
+      div.innerHTML = `<strong class="comment-author">${c.author}</strong><div class="comment-text">${c.text}</div>`;
+      commentsList.appendChild(div);
+    });
+    postDetailModal.dataset.postIdx = idx;
+    postDetailModal.classList.add('active');
+  }
+
+  // 댓글 작성 이벤트
+  commentForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const author = commentAuthorInput.value.trim();
+    const text = commentTextInput.value.trim();
+    if (!author || !text) {
+      alert('작성자와 댓글 내용을 모두 입력해주세요.');
+      return;
+    }
+    const postIdx = Number(postDetailModal.dataset.postIdx);
+    comments.push({ postIdx, author, text });
+    commentAuthorInput.value = '';
+    commentTextInput.value = '';
+    showPostDetail(postIdx);
+  });
+
+  // 검색 기능 (제목 포함 검색)
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    const term = searchInput.value.trim().toLowerCase();
+    const filtered = posts.filter(p => p.title.toLowerCase().includes(term));
+    postsListUl.innerHTML = '';
+    filtered.forEach((post, idx) => {
+      const li = document.createElement('li');
+      li.tabIndex = 0;
+      li.setAttribute('role', 'button');
+      li.innerHTML = `
+        <div class="post-title">${post.title}</div>
+        <div class="post-meta">작성자: ${post.author} | 작성일: ${post.date.toLocaleString()}</div>
+      `;
+      li.addEventListener('click', () => showPostDetail(posts.indexOf(post)));
+      li.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          showPostDetail(posts.indexOf(post));
+        }
+      });
+      postsListUl.appendChild(li);
+    });
+  });
+
+  // 초기 상태 세팅
+  writePostBtn.disabled = true;
 </script>
 </body>
 </html>
