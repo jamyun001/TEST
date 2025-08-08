@@ -2,19 +2,23 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const path = require('path');
+
 const app = express();
-const port = 80;
+const port = 3000;
 
 app.use(cors());
 app.use(express.json());
 
+// 🔹 정적 파일 제공: /public 폴더의 HTML, CSS, JS 파일
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 모든 요청에 대해 index.html 반환 (SPA 용도)
-app.get('*', (req, res) => {
+// 🔹 루트 요청 시 index.html 제공
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-// SQLite DB 초기화
+// 🔹 SQLite DB 초기화
 const db = new sqlite3.Database('./gallery.db');
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -43,7 +47,7 @@ db.serialize(() => {
   )`);
 });
 
-// 회원가입
+// 🔹 회원가입 (IP당 1회 제한)
 app.post('/api/register', async (req, res) => {
   const { username, password, nickname, ip } = req.body;
   if (!username || !password || !nickname || !ip)
@@ -64,7 +68,7 @@ app.post('/api/register', async (req, res) => {
   });
 });
 
-// 로그인
+// 🔹 로그인
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   db.get('SELECT * FROM users WHERE username = ?', [username], async (err, user) => {
@@ -75,7 +79,7 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// 글 작성
+// 🔹 글 작성
 app.post('/api/posts', (req, res) => {
   const { title, content, user_id } = req.body;
   if (!title || !content || !user_id)
@@ -91,7 +95,7 @@ app.post('/api/posts', (req, res) => {
   );
 });
 
-// 게시글 목록
+// 🔹 게시글 목록
 app.get('/api/posts', (req, res) => {
   db.all(
     `SELECT posts.id, title, created_at, nickname FROM posts
@@ -104,7 +108,7 @@ app.get('/api/posts', (req, res) => {
   );
 });
 
-// 게시글 상세
+// 🔹 게시글 상세
 app.get('/api/posts/:id', (req, res) => {
   const postId = req.params.id;
   db.get(
@@ -119,7 +123,7 @@ app.get('/api/posts/:id', (req, res) => {
   );
 });
 
-// 댓글 작성
+// 🔹 댓글 작성
 app.post('/api/comments', (req, res) => {
   const { post_id, user_id, text } = req.body;
   if (!post_id || !user_id || !text)
@@ -135,7 +139,7 @@ app.post('/api/comments', (req, res) => {
   );
 });
 
-// 댓글 조회
+// 🔹 댓글 조회
 app.get('/api/posts/:id/comments', (req, res) => {
   const postId = req.params.id;
   db.all(
@@ -150,6 +154,7 @@ app.get('/api/posts/:id/comments', (req, res) => {
   );
 });
 
+// 🔹 서버 시작
 app.listen(port, () => {
   console.log(`✅ 서버 실행 중: http://localhost:${port}`);
 });
