@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>게임 게시판</title>
 <style>
-  /* 다크모드/라이트모드 기본 */
   :root {
     --bg-color-light: #f4f4f4;
     --text-color-light: #222;
@@ -16,16 +15,13 @@
     --border-color-dark: #444;
   }
   body {
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
+    max-width: 900px;
+    margin: auto;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color-light);
     color: var(--text-color-light);
     transition: background-color 0.3s, color 0.3s;
     padding: 1rem;
-    box-sizing: border-box;
-    overflow-x: hidden;
   }
   body.dark {
     background-color: var(--bg-color-dark);
@@ -43,15 +39,14 @@
     border: none;
     color: white;
     padding: 6px 12px;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
+    transition: background 0.3s;
   }
   nav button:hover, nav #toggle-theme:hover {
     background: #0059c1;
   }
-
-  /* 검색창 스타일 */
   #search-bar {
     margin-top: 10px;
     display: flex;
@@ -60,7 +55,7 @@
   #search-input {
     flex-grow: 1;
     padding: 8px;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border-color-light);
     transition: border-color 0.3s;
   }
@@ -73,14 +68,13 @@
     border: none;
     color: white;
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
   }
   #search-button:hover {
     background: #0059c1;
   }
-
   #posts {
     margin-top: 20px;
   }
@@ -88,7 +82,7 @@
     border: 1px solid var(--border-color-light);
     padding: 15px;
     margin-bottom: 12px;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     transition: background-color 0.3s, border-color 0.3s;
   }
@@ -111,7 +105,7 @@
     border: 1px solid var(--border-color-light);
     padding: 20px;
     margin-top: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     transition: background-color 0.3s, border-color 0.3s;
   }
@@ -123,7 +117,7 @@
     max-width: 100%;
     height: auto;
     margin: 10px 0;
-    border-radius: 6px;
+    border-radius: 8px;
   }
   #comments > div {
     border-top: 1px solid var(--border-color-light);
@@ -139,7 +133,7 @@
     width: 100%;
     height: 80px;
     padding: 8px;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border-color-light);
     resize: vertical;
     background: white;
@@ -154,7 +148,7 @@
     width: 100%;
     padding: 8px;
     margin: 8px 0;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border-color-light);
     background: white;
     color: inherit;
@@ -169,16 +163,15 @@
     border: none;
     color: white;
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     margin-top: 10px;
+    transition: background 0.3s;
   }
   button[type=submit]:hover, #btn-new-post:hover, #btn-back:hover {
     background: #0059c1;
   }
-
-  /* 모달 스타일 */
   #modal-overlay {
     display:none;
     position: fixed;
@@ -193,29 +186,27 @@
     left: 50%;
     transform: translateX(-50%);
     background: white;
-    padding: 25px 20px;
+    padding: 30px 25px 25px 25px;
     box-shadow: 0 0 15px rgba(0,0,0,0.3);
     border-radius: 12px;
-    width: 280px;  /* 가로 너비 축소 */
+    width: 320px;
+    max-width: 90vw;
     z-index: 1000;
     color: inherit;
     transition: background-color 0.3s, color 0.3s;
+    box-sizing: border-box;
   }
   body.dark #modal {
     background: #222;
     color: var(--text-color-dark);
   }
   #modal input[type=text], #modal input[type=password] {
-    margin-bottom: 10px;
-    padding: 7px;
-    font-size: 0.9rem;
-    border-radius: 6px;
+    margin-bottom: 12px;
   }
   #modal button {
     width: 100%;
-    margin-top: 10px;
-    padding: 8px;
-    font-size: 1rem;
+    margin-top: 12px;
+    border-radius: 8px;
   }
   #modal-message {
     color: #d33;
@@ -223,7 +214,20 @@
     font-size: 0.9rem;
     text-align: center;
   }
-  #modal .switch-to-register {
+  #modal-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--primary-color);
+    cursor: pointer;
+    user-select: none;
+  }
+  #modal-close:hover {
+    color: #0059c1;
+  }
+  #switch-register {
     margin-top: 15px;
     text-align: center;
     font-size: 0.9rem;
@@ -231,7 +235,7 @@
     cursor: pointer;
     user-select: none;
   }
-  #modal .switch-to-register:hover {
+  #switch-register:hover {
     text-decoration: underline;
   }
 </style>
@@ -243,20 +247,17 @@
   <nav>
     <span id="user-info"></span>
     <button id="btn-login">로그인</button>
-    <!-- 회원가입 버튼 제거 -->
+    <!-- 회원가입 버튼 삭제 -->
     <button id="btn-logout" style="display:none;">로그아웃</button>
     <button id="toggle-theme" title="다크모드/라이트모드 전환">🌓</button>
   </nav>
 </header>
 
 <section id="main-section">
-
-  <!-- 검색 UI -->
   <div id="search-bar">
     <input type="text" id="search-input" placeholder="제목, 내용, 닉네임 검색" />
     <button id="search-button">검색</button>
   </div>
-
   <div id="posts"></div>
   <button id="btn-new-post" style="display:none;">새 글 작성</button>
 </section>
@@ -269,7 +270,6 @@
   <img id="detail-image" alt="" style="display:none;" />
   <p id="detail-content"></p>
   <div id="comments"></div>
-
   <form id="comment-form" style="display:none;">
     <textarea id="comment-content" placeholder="댓글 작성"></textarea>
     <button type="submit">댓글 달기</button>
@@ -279,6 +279,7 @@
 <div id="modal-overlay"></div>
 
 <div id="modal">
+  <div id="modal-close" title="닫기">&times;</div>
   <h3 id="modal-title"></h3>
   <form id="modal-form">
     <input type="text" id="modal-username" placeholder="아이디" required autocomplete="username" />
@@ -287,7 +288,7 @@
     <button type="submit">제출</button>
   </form>
   <p id="modal-message"></p>
-  <div class="switch-to-register" id="switch-register">계정이 없으신가요? 회원가입</div>
+  <div class="switch-to-register" id="switch-register"></div>
 </div>
 
 <script>
@@ -311,7 +312,6 @@ function updateUserInfo() {
       currentUser = payload.nickname;
       document.getElementById('user-info').textContent = currentUser + ' 님 환영합니다';
       document.getElementById('btn-login').style.display = 'none';
-      // 회원가입 버튼 없으므로 숨김 처리 불필요
       document.getElementById('btn-logout').style.display = 'inline-block';
       document.getElementById('btn-new-post').style.display = 'inline-block';
     } catch {
@@ -332,7 +332,7 @@ async function apiFetch(url, options = {}) {
   const res = await fetch(apiBase + url, options);
   if (res.status === 401) {
     alert('인증이 필요합니다. 로그인 해주세요.');
-    logout();
+    setToken(null);
     throw new Error('Unauthorized');
   }
   return res.json();
@@ -424,18 +424,25 @@ const modalUsername = document.getElementById('modal-username');
 const modalPassword = document.getElementById('modal-password');
 const modalNickname = document.getElementById('modal-nickname');
 const modalMessage = document.getElementById('modal-message');
+const switchRegister = document.getElementById('switch-register');
+const modalCloseBtn = document.getElementById('modal-close');
 
 let modalMode = 'login';
 
 document.getElementById('btn-login').onclick = () => openModal('login');
-// 회원가입 버튼 없으므로 삭제
 document.getElementById('btn-logout').onclick = () => {
   setToken(null);
   alert('로그아웃 되었습니다.');
   loadPosts();
 };
 
-document.getElementById('switch-register').onclick = () => openModal('register');
+modalCloseBtn.onclick = closeModal;
+modalOverlay.onclick = closeModal;
+
+switchRegister.onclick = () => {
+  if (modalMode === 'login') openModal('register');
+  else openModal('login');
+};
 
 function openModal(mode) {
   modalMode = mode;
@@ -448,8 +455,10 @@ function openModal(mode) {
   if (mode === 'register') {
     modalNickname.style.display = 'block';
     modalNickname.value = '';
+    switchRegister.textContent = '이미 계정이 있으신가요? 로그인';
   } else {
     modalNickname.style.display = 'none';
+    switchRegister.textContent = '계정이 없으신가요? 회원가입';
   }
 }
 
@@ -460,7 +469,6 @@ function closeModal() {
 
 modalForm.onsubmit = async e => {
   e.preventDefault();
-
   const username = modalUsername.value.trim();
   const password = modalPassword.value.trim();
   const nickname = modalNickname.value.trim();
@@ -483,7 +491,7 @@ modalForm.onsubmit = async e => {
         closeModal();
         loadPosts();
       } else {
-        modalMessage.textContent = data.message;
+        modalMessage.textContent = data.message || '로그인 실패';
       }
     } else {
       const res = await fetch(apiBase + '/register', {
@@ -496,7 +504,7 @@ modalForm.onsubmit = async e => {
         alert('회원가입 성공! 로그인 해주세요.');
         openModal('login');
       } else {
-        modalMessage.textContent = data.message;
+        modalMessage.textContent = data.message || '회원가입 실패';
       }
     }
   } catch {
@@ -511,32 +519,30 @@ function loadTheme() {
   if(saved === 'dark') document.body.classList.add('dark');
   else document.body.classList.remove('dark');
 }
-function toggleTheme() {
-  document.body.classList.toggle('dark');
-  if(document.body.classList.contains('dark')) localStorage.setItem('theme', 'dark');
-  else localStorage.setItem('theme', 'light');
+function toggleTheme() { if(document.body.classList.contains('dark')) {
+    document.body.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
+  } else {
+    document.body.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+  }
 }
+
 themeToggleBtn.onclick = toggleTheme;
 loadTheme();
 
-// 검색 기능
-const searchInput = document.getElementById('search-input');
-const searchButton = document.getElementById('search-button');
-
-searchButton.onclick = () => {
-  const keyword = searchInput.value.trim();
-  loadPosts(keyword);
+document.getElementById('search-button').onclick = () => {
+  const term = document.getElementById('search-input').value.trim();
+  loadPosts(term);
 };
 
-searchInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    searchButton.click();
-  }
-});
+document.getElementById('btn-new-post').onclick = () => {
+  alert('새 글 작성 기능은 준비 중입니다.');
+};
 
 updateUserInfo();
 loadPosts();
 </script>
+
 </body>
 </html>
