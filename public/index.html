@@ -16,9 +16,7 @@
     --border-color-dark: #444;
   }
   body {
-    max-width: 900px;
-    margin: auto;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 900px; margin: auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color-light);
     color: var(--text-color-light);
     transition: background-color 0.3s, color 0.3s;
@@ -29,23 +27,14 @@
     color: var(--text-color-dark);
   }
   header {
-    margin: 20px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px;
-  }
-  nav {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    margin: 20px 0; display: flex; justify-content: space-between; align-items: center;
   }
   nav button, nav #toggle-theme {
-    margin: 0;
+    margin-left: 10px;
     background: var(--primary-color);
     border: none;
     color: white;
-    padding: 8px 18px;
+    padding: 8px 16px;
     border-radius: 12px;
     cursor: pointer;
     font-weight: 600;
@@ -54,25 +43,20 @@
   nav button:hover, nav #toggle-theme:hover {
     background: #0059c1;
   }
-  #user-info {
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-right: 12px;
-  }
 
   /* 검색창 스타일 */
   #search-bar {
-    margin-top: 15px;
+    margin-top: 10px;
     display: flex;
-    gap: 12px;
+    gap: 8px;
   }
   #search-input {
     flex-grow: 1;
-    padding: 10px;
+    padding: 10px 14px;
     border-radius: 12px;
     border: 1.5px solid var(--border-color-light);
-    font-size: 1rem;
     transition: border-color 0.3s;
+    font-size: 1rem;
   }
   #search-input:focus {
     border-color: var(--primary-color);
@@ -85,32 +69,33 @@
     padding: 10px 20px;
     border-radius: 12px;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 1rem;
   }
   #search-button:hover {
     background: #0059c1;
   }
 
-  /* 게시글 영역 */
   #posts {
-    margin-top: 25px;
+    margin-top: 20px;
   }
   .post {
-    border-radius: 12px;
-    padding: 18px 20px;
+    border: 1.5px solid var(--border-color-light);
+    padding: 18px 22px;
     margin-bottom: 16px;
+    border-radius: 14px;
     background: white;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
-    transition: box-shadow 0.3s, background-color 0.3s;
+    transition: background-color 0.3s, border-color 0.3s;
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.1);
   }
   body.dark .post {
     background: #222;
-    box-shadow: none;
+    border-color: var(--border-color-dark);
+    box-shadow: 0 3px 8px rgb(255 255 255 / 0.1);
   }
   .post h3 {
     margin: 0 0 8px 0;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
   }
   .post h3 a {
     color: var(--primary-color);
@@ -119,36 +104,31 @@
   .post h3 a:hover {
     text-decoration: underline;
   }
-
-  /* 새 글 버튼 */
-  #btn-new-post {
-    margin-top: 18px;
-    border-radius: 12px;
-    font-size: 1rem;
-  }
-
   #post-detail {
     display: none;
-    border: 1px solid var(--border-color-light);
-    padding: 20px;
+    border: 1.5px solid var(--border-color-light);
+    padding: 24px 30px;
     margin-top: 20px;
-    border-radius: 12px;
+    border-radius: 14px;
     background: white;
     transition: background-color 0.3s, border-color 0.3s;
+    box-shadow: 0 3px 12px rgb(0 0 0 / 0.15);
   }
   body.dark #post-detail {
     background: #222;
     border-color: var(--border-color-dark);
+    box-shadow: 0 3px 12px rgb(255 255 255 / 0.15);
   }
   #post-detail img {
     max-width: 100%;
     height: auto;
-    margin: 10px 0;
-    border-radius: 12px;
+    margin: 12px 0;
+    border-radius: 10px;
   }
   #comments > div {
     border-top: 1px solid var(--border-color-light);
-    padding: 8px 0;
+    padding: 10px 0;
+    font-size: 0.95rem;
   }
   body.dark #comments > div {
     border-color: var(--border-color-dark);
@@ -158,13 +138,14 @@
   }
   textarea {
     width: 100%;
-    height: 80px;
-    padding: 8px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color-light);
+    height: 90px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border-color-light);
     resize: vertical;
     background: white;
     color: inherit;
+    font-size: 1rem;
     transition: background-color 0.3s, border-color 0.3s;
   }
   body.dark textarea {
@@ -173,12 +154,13 @@
   }
   input[type=text], input[type=password] {
     width: 100%;
-    padding: 8px;
-    margin: 8px 0;
-    border-radius: 12px;
-    border: 1px solid var(--border-color-light);
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 14px;
+    border: 1.5px solid var(--border-color-light);
     background: white;
     color: inherit;
+    font-size: 1rem;
     transition: background-color 0.3s, border-color 0.3s;
   }
   body.dark input[type=text], body.dark input[type=password] {
@@ -189,15 +171,18 @@
     background: var(--primary-color);
     border: none;
     color: white;
-    padding: 8px 16px;
-    border-radius: 12px;
+    padding: 10px 22px;
+    border-radius: 14px;
     cursor: pointer;
     font-weight: 600;
-    margin-top: 10px;
-    transition: background-color 0.3s;
+    font-size: 1rem;
+    margin-top: 14px;
+    box-shadow: 0 3px 6px rgb(41 121 255 / 0.5);
+    transition: background-color 0.3s, box-shadow 0.3s;
   }
   button[type=submit]:hover, #btn-new-post:hover, #btn-back:hover {
     background: #0059c1;
+    box-shadow: 0 5px 12px rgb(0 89 193 / 0.7);
   }
 
   /* 모달 스타일 */
@@ -205,20 +190,21 @@
     display:none;
     position: fixed;
     top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.5);
     z-index: 999;
   }
   #modal {
     display:none;
     position: fixed;
-    top: 20%;
+    top: 15%;
     left: 50%;
     transform: translateX(-50%);
     background: white;
-    padding: 30px 25px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
-    border-radius: 12px;
-    width: 320px;
+    padding: 36px 30px 24px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.4);
+    border-radius: 18px;
+    width: 360px;
+    max-width: 90%;
     z-index: 1000;
     color: inherit;
     transition: background-color 0.3s, color 0.3s;
@@ -227,31 +213,60 @@
     background: #222;
     color: var(--text-color-dark);
   }
+  #modal h3 {
+    margin: 0 0 18px;
+    font-size: 1.5rem;
+    text-align: center;
+  }
   #modal input[type=text], #modal input[type=password] {
-    margin-bottom: 12px;
-    border-radius: 12px;
+    margin-bottom: 16px;
+    font-size: 1rem;
   }
   #modal button {
     width: 100%;
-    margin-top: 12px;
-    border-radius: 12px;
+    padding: 12px 0;
+    border-radius: 14px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgb(41 121 255 / 0.6);
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  #modal button:hover {
+    background: #0059c1;
+    box-shadow: 0 6px 14px rgb(0 89 193 / 0.8);
   }
   #modal-message {
     color: #d33;
-    margin-top: 8px;
-    font-size: 0.9rem;
+    margin-top: 12px;
+    font-size: 1rem;
     text-align: center;
+    min-height: 1.2em;
   }
   #modal .switch-to-register {
-    margin-top: 15px;
+    margin-top: 22px;
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--primary-color);
     cursor: pointer;
     user-select: none;
   }
   #modal .switch-to-register:hover {
     text-decoration: underline;
+  }
+  /* 닫기 버튼 스타일 */
+  #modal-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 24px;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-weight: 700;
+    user-select: none;
+    transition: color 0.3s;
+  }
+  #modal-close:hover {
+    color: #0059c1;
   }
 </style>
 </head>
@@ -262,7 +277,6 @@
   <nav>
     <span id="user-info"></span>
     <button id="btn-login">로그인</button>
-    <!-- 회원가입 버튼 삭제 -->
     <button id="btn-logout" style="display:none;">로그아웃</button>
     <button id="toggle-theme" title="다크모드/라이트모드 전환">🌓</button>
   </nav>
@@ -298,6 +312,7 @@
 <div id="modal-overlay"></div>
 
 <div id="modal">
+  <div id="modal-close" title="닫기">×</div>
   <h3 id="modal-title"></h3>
   <form id="modal-form">
     <input type="text" id="modal-username" placeholder="아이디" required autocomplete="username" />
@@ -442,13 +457,11 @@ const modalUsername = document.getElementById('modal-username');
 const modalPassword = document.getElementById('modal-password');
 const modalNickname = document.getElementById('modal-nickname');
 const modalMessage = document.getElementById('modal-message');
+const modalCloseBtn = document.getElementById('modal-close');
 
 let modalMode = 'login';
 
 document.getElementById('btn-login').onclick = () => openModal('login');
-// 회원가입 버튼 삭제로 이 이벤트는 없어도 됩니다.
-// document.getElementById('btn-register').onclick = () => openModal('register');
-
 document.getElementById('btn-logout').onclick = () => {
   setToken(null);
   alert('로그아웃 되었습니다.');
@@ -456,6 +469,8 @@ document.getElementById('btn-logout').onclick = () => {
 };
 
 document.getElementById('switch-register').onclick = () => openModal('register');
+modalCloseBtn.onclick = closeModal;
+modalOverlay.onclick = closeModal;
 
 function openModal(mode) {
   modalMode = mode;
