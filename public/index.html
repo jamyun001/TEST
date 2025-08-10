@@ -42,11 +42,13 @@
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: background 0.3s;
+    transition: background-color 0.3s;
   }
   nav button:hover, nav #toggle-theme:hover {
     background: #0059c1;
   }
+
+  /* 검색창 스타일 */
   #search-bar {
     margin-top: 10px;
     display: flex;
@@ -67,31 +69,35 @@
     background: var(--primary-color);
     border: none;
     color: white;
-    padding: 8px 16px;
+    padding: 8px 18px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
+    transition: background-color 0.3s;
   }
   #search-button:hover {
     background: #0059c1;
   }
+
   #posts {
     margin-top: 20px;
   }
   .post {
     border: 1px solid var(--border-color-light);
-    padding: 15px;
-    margin-bottom: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
     border-radius: 12px;
     background: white;
     transition: background-color 0.3s, border-color 0.3s;
+    cursor: pointer;
   }
   body.dark .post {
     background: #222;
     border-color: var(--border-color-dark);
   }
   .post h3 {
-    margin: 0 0 8px 0;
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
   }
   .post h3 a {
     color: var(--primary-color);
@@ -100,10 +106,19 @@
   .post h3 a:hover {
     text-decoration: underline;
   }
+  .post-info {
+    font-size: 0.9rem;
+    color: #666;
+    user-select: none;
+  }
+  body.dark .post-info {
+    color: #bbb;
+  }
+
   #post-detail {
     display: none;
     border: 1px solid var(--border-color-light);
-    padding: 20px;
+    padding: 22px 26px;
     margin-top: 20px;
     border-radius: 12px;
     background: white;
@@ -116,62 +131,61 @@
   #post-detail img {
     max-width: 100%;
     height: auto;
-    margin: 10px 0;
+    margin: 14px 0;
     border-radius: 8px;
   }
   #comments > div {
     border-top: 1px solid var(--border-color-light);
-    padding: 8px 0;
+    padding: 10px 0;
+    font-size: 0.95rem;
   }
   body.dark #comments > div {
     border-color: var(--border-color-dark);
   }
+  #comments h4 {
+    margin-bottom: 10px;
+  }
   form {
     margin-top: 20px;
   }
+  textarea, input[type=text], select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color-light);
+    background: white;
+    color: inherit;
+    font-size: 1rem;
+    transition: background-color 0.3s, border-color 0.3s;
+    box-sizing: border-box;
+  }
+  body.dark textarea, body.dark input[type=text], body.dark select {
+    background: #333;
+    border-color: var(--border-color-dark);
+  }
   textarea {
-    width: 100%;
-    height: 80px;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color-light);
+    height: 90px;
     resize: vertical;
-    background: white;
-    color: inherit;
-    transition: background-color 0.3s, border-color 0.3s;
-  }
-  body.dark textarea {
-    background: #333;
-    border-color: var(--border-color-dark);
-  }
-  input[type=text], input[type=password] {
-    width: 100%;
-    padding: 8px;
-    margin: 8px 0;
-    border-radius: 8px;
-    border: 1px solid var(--border-color-light);
-    background: white;
-    color: inherit;
-    transition: background-color 0.3s, border-color 0.3s;
-  }
-  body.dark input[type=text], body.dark input[type=password] {
-    background: #333;
-    border-color: var(--border-color-dark);
   }
   button[type=submit], #btn-new-post, #btn-back {
     background: var(--primary-color);
     border: none;
     color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
     cursor: pointer;
-    font-weight: 600;
-    margin-top: 10px;
-    transition: background 0.3s;
+    font-weight: 700;
+    margin-top: 14px;
+    transition: background-color 0.3s;
   }
   button[type=submit]:hover, #btn-new-post:hover, #btn-back:hover {
     background: #0059c1;
   }
+  #btn-new-post {
+    margin-top: 24px;
+  }
+
+  /* 모달 스타일 */
   #modal-overlay {
     display:none;
     position: fixed;
@@ -186,40 +200,62 @@
     left: 50%;
     transform: translateX(-50%);
     background: white;
-    padding: 30px 25px 25px 25px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
-    border-radius: 12px;
+    padding: 30px 28px 22px 28px;
+    box-shadow: 0 0 18px rgba(0,0,0,0.25);
+    border-radius: 14px;
     width: 320px;
     max-width: 90vw;
     z-index: 1000;
     color: inherit;
     transition: background-color 0.3s, color 0.3s;
-    box-sizing: border-box;
   }
   body.dark #modal {
     background: #222;
     color: var(--text-color-dark);
   }
+  #modal h3 {
+    margin: 0 0 18px 0;
+    font-weight: 700;
+    font-size: 1.4rem;
+    text-align: center;
+  }
   #modal input[type=text], #modal input[type=password] {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    font-size: 1rem;
+    padding: 10px 12px;
   }
   #modal button {
     width: 100%;
-    margin-top: 12px;
-    border-radius: 8px;
+    padding: 12px 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 14px;
+    margin-top: 6px;
   }
   #modal-message {
     color: #d33;
-    margin-top: 8px;
-    font-size: 0.9rem;
+    margin-top: 12px;
+    font-size: 0.95rem;
     text-align: center;
+    min-height: 1.2em;
+  }
+  #modal .switch-to-register {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--primary-color);
+    cursor: pointer;
+    user-select: none;
+  }
+  #modal .switch-to-register:hover {
+    text-decoration: underline;
   }
   #modal-close {
     position: absolute;
-    top: 8px;
-    right: 10px;
-    font-size: 22px;
-    font-weight: bold;
+    top: 12px;
+    right: 16px;
+    font-size: 1.6rem;
+    font-weight: 700;
     color: var(--primary-color);
     cursor: pointer;
     user-select: none;
@@ -227,16 +263,29 @@
   #modal-close:hover {
     color: #0059c1;
   }
-  #switch-register {
-    margin-top: 15px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--primary-color);
-    cursor: pointer;
-    user-select: none;
+
+  /* 새 글 작성 폼 스타일 */
+  #new-post-form {
+    display: none;
+    margin-top: 20px;
+    border: 1px solid var(--border-color-light);
+    border-radius: 14px;
+    padding: 24px 28px;
+    background: white;
+    transition: background-color 0.3s, border-color 0.3s;
   }
-  #switch-register:hover {
-    text-decoration: underline;
+  body.dark #new-post-form {
+    background: #222;
+    border-color: var(--border-color-dark);
+  }
+  #new-post-form label {
+    font-weight: 600;
+    margin-top: 12px;
+    display: block;
+    font-size: 1rem;
+  }
+  #new-post-form select {
+    margin-top: 6px;
   }
 </style>
 </head>
@@ -247,19 +296,41 @@
   <nav>
     <span id="user-info"></span>
     <button id="btn-login">로그인</button>
-    <!-- 회원가입 버튼 삭제 -->
     <button id="btn-logout" style="display:none;">로그아웃</button>
     <button id="toggle-theme" title="다크모드/라이트모드 전환">🌓</button>
   </nav>
 </header>
 
 <section id="main-section">
+
   <div id="search-bar">
     <input type="text" id="search-input" placeholder="제목, 내용, 닉네임 검색" />
     <button id="search-button">검색</button>
   </div>
+
   <div id="posts"></div>
+
   <button id="btn-new-post" style="display:none;">새 글 작성</button>
+
+  <form id="new-post-form">
+    <label for="post-title">제목</label>
+    <input type="text" id="post-title" placeholder="글 제목을 입력하세요" required />
+
+    <label for="post-category">카테고리</label>
+    <select id="post-category">
+      <option value="">선택안함</option>
+      <option value="RPG">RPG</option>
+      <option value="FPS">FPS</option>
+      <option value="액션">액션</option>
+      <option value="기타">기타</option>
+    </select>
+
+    <label for="post-content">내용</label>
+    <textarea id="post-content" placeholder="내용을 입력하세요" required></textarea>
+
+    <button type="submit">글 등록</button>
+    <button type="button" id="btn-cancel-post" style="margin-left: 12px; background: #999;">취소</button>
+  </form>
 </section>
 
 <section id="post-detail">
@@ -270,6 +341,7 @@
   <img id="detail-image" alt="" style="display:none;" />
   <p id="detail-content"></p>
   <div id="comments"></div>
+
   <form id="comment-form" style="display:none;">
     <textarea id="comment-content" placeholder="댓글 작성"></textarea>
     <button type="submit">댓글 달기</button>
@@ -279,7 +351,7 @@
 <div id="modal-overlay"></div>
 
 <div id="modal">
-  <div id="modal-close" title="닫기">&times;</div>
+  <div id="modal-close" title="닫기">×</div>
   <h3 id="modal-title"></h3>
   <form id="modal-form">
     <input type="text" id="modal-username" placeholder="아이디" required autocomplete="username" />
@@ -288,7 +360,7 @@
     <button type="submit">제출</button>
   </form>
   <p id="modal-message"></p>
-  <div class="switch-to-register" id="switch-register"></div>
+  <div class="switch-to-register" id="switch-register">계정이 없으신가요? 회원가입</div>
 </div>
 
 <script>
@@ -310,7 +382,7 @@ function updateUserInfo() {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       currentUser = payload.nickname;
-      document.getElementById('user-info').textContent = currentUser + ' 님 환영합니다';
+      document.getElementById('user-info').textContent = currentUser + '님 환영합니다';
       document.getElementById('btn-login').style.display = 'none';
       document.getElementById('btn-logout').style.display = 'inline-block';
       document.getElementById('btn-new-post').style.display = 'inline-block';
@@ -332,7 +404,7 @@ async function apiFetch(url, options = {}) {
   const res = await fetch(apiBase + url, options);
   if (res.status === 401) {
     alert('인증이 필요합니다. 로그인 해주세요.');
-    setToken(null);
+    logout();
     throw new Error('Unauthorized');
   }
   return res.json();
@@ -350,8 +422,8 @@ async function loadPosts(searchTerm = '') {
   posts.forEach(p => {
     const div = document.createElement('div');
     div.className = 'post';
-    div.innerHTML = `<h3><a href="#" data-id="${p.id}">${p.title}</a></h3>
-                     <p>작성자: ${p.nickname} | 조회수: ${p.views} | 카테고리: ${p.category || '없음'}</p>`;
+    div.innerHTML = `<h3><a href="#" data-id="${p.id}">${escapeHtml(p.title)}</a></h3>
+                     <p class="post-info">작성자: ${escapeHtml(p.nickname)}님 | 조회수: ${p.views} | 카테고리: ${escapeHtml(p.category || '없음')}</p>`;
     postsDiv.appendChild(div);
   });
 
@@ -363,14 +435,24 @@ async function loadPosts(searchTerm = '') {
   });
 }
 
+function escapeHtml(text) {
+  if(!text) return '';
+  return text.replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+}
+
 async function showPostDetail(id) {
   const data = await apiFetch('/posts/' + id);
   currentPostId = id;
   document.getElementById('main-section').style.display = 'none';
+  document.getElementById('new-post-form').style.display = 'none';
   const detail = document.getElementById('post-detail');
   detail.style.display = 'block';
   document.getElementById('detail-title').textContent = data.post.title;
-  document.getElementById('detail-author').textContent = '작성자: ' + data.post.nickname;
+  document.getElementById('detail-author').textContent = '작성자: ' + data.post.nickname + '님';
   document.getElementById('detail-category').textContent = '카테고리: ' + (data.post.category || '없음');
   if (data.post.image_url) {
     const img = document.getElementById('detail-image');
@@ -385,7 +467,7 @@ async function showPostDetail(id) {
   commentsDiv.innerHTML = '<h4>댓글</h4>';
   data.comments.forEach(c => {
     const cdiv = document.createElement('div');
-    cdiv.textContent = c.nickname + ': ' + c.content;
+    cdiv.textContent = c.nickname + '님: ' + c.content;
     commentsDiv.appendChild(cdiv);
   });
 
@@ -413,6 +495,7 @@ document.getElementById('btn-back').onclick = () => {
   currentPostId = null;
   document.getElementById('post-detail').style.display = 'none';
   document.getElementById('main-section').style.display = 'block';
+  document.getElementById('new-post-form').style.display = 'none';
   loadPosts();
 };
 
@@ -424,8 +507,7 @@ const modalUsername = document.getElementById('modal-username');
 const modalPassword = document.getElementById('modal-password');
 const modalNickname = document.getElementById('modal-nickname');
 const modalMessage = document.getElementById('modal-message');
-const switchRegister = document.getElementById('switch-register');
-const modalCloseBtn = document.getElementById('modal-close');
+const modalClose = document.getElementById('modal-close');
 
 let modalMode = 'login';
 
@@ -435,14 +517,21 @@ document.getElementById('btn-logout').onclick = () => {
   alert('로그아웃 되었습니다.');
   loadPosts();
 };
-
-modalCloseBtn.onclick = closeModal;
-modalOverlay.onclick = closeModal;
-
-switchRegister.onclick = () => {
-  if (modalMode === 'login') openModal('register');
-  else openModal('login');
+document.getElementById('btn-new-post').onclick = () => {
+  document.getElementById('main-section').style.display = 'none';
+  document.getElementById('post-detail').style.display = 'none';
+  document.getElementById('new-post-form').style.display = 'block';
+  clearNewPostForm();
 };
+
+document.getElementById('btn-cancel-post').onclick = () => {
+  document.getElementById('new-post-form').style.display = 'none';
+  document.getElementById('main-section').style.display = 'block';
+};
+
+document.getElementById('switch-register').onclick = () => openModal('register');
+modalClose.onclick = closeModal;
+modalOverlay.onclick = closeModal;
 
 function openModal(mode) {
   modalMode = mode;
@@ -455,10 +544,10 @@ function openModal(mode) {
   if (mode === 'register') {
     modalNickname.style.display = 'block';
     modalNickname.value = '';
-    switchRegister.textContent = '이미 계정이 있으신가요? 로그인';
+    document.getElementById('switch-register').textContent = '이미 계정이 있으신가요? 로그인';
   } else {
     modalNickname.style.display = 'none';
-    switchRegister.textContent = '계정이 없으신가요? 회원가입';
+    document.getElementById('switch-register').textContent = '계정이 없으신가요? 회원가입';
   }
 }
 
@@ -519,30 +608,70 @@ function loadTheme() {
   if(saved === 'dark') document.body.classList.add('dark');
   else document.body.classList.remove('dark');
 }
-function toggleTheme() { if(document.body.classList.contains('dark')) {
-    document.body.classList.remove('dark');
-    localStorage.setItem('theme', 'light');
-  } else {
-    document.body.classList.add('dark');
-    localStorage.setItem('theme', 'dark');
-  }
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  if(document.body.classList.contains('dark')) localStorage.setItem('theme', 'dark');
+  else localStorage.setItem('theme', 'light');
 }
-
 themeToggleBtn.onclick = toggleTheme;
 loadTheme();
 
-document.getElementById('search-button').onclick = () => {
-  const term = document.getElementById('search-input').value.trim();
-  loadPosts(term);
+// 검색 기능
+const searchInput = document.getElementById('search-input');
+const searchButton = document.getElementById('search-button');
+
+searchButton.onclick = () => {
+  const keyword = searchInput.value.trim();
+  loadPosts(keyword);
 };
 
-document.getElementById('btn-new-post').onclick = () => {
-  alert('새 글 작성 기능은 준비 중입니다.');
+searchInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    searchButton.click();
+  }
+});
+
+// 새 글 작성 폼 제출 처리
+document.getElementById('new-post-form').onsubmit = async e => {
+  e.preventDefault();
+  const title = document.getElementById('post-title').value.trim();
+  const category = document.getElementById('post-category').value;
+  const content = document.getElementById('post-content').value.trim();
+
+  if (!title || !content) {
+    alert('제목과 내용을 입력하세요.');
+    return;
+  }
+
+  try {
+    const res = await apiFetch('/posts', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ title, category, content })
+    });
+    if (res.id) {
+      alert('글 작성이 완료되었습니다.');
+      document.getElementById('new-post-form').style.display = 'none';
+      document.getElementById('main-section').style.display = 'block';
+      clearNewPostForm();
+      loadPosts();
+    } else {
+      alert('글 작성에 실패했습니다.');
+    }
+  } catch (err) {
+    alert('글 작성 중 오류가 발생했습니다.');
+  }
 };
+
+function clearNewPostForm() {
+  document.getElementById('post-title').value = '';
+  document.getElementById('post-category').value = '';
+  document.getElementById('post-content').value = '';
+}
 
 updateUserInfo();
 loadPosts();
 </script>
-
 </body>
 </html>
